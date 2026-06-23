@@ -1,21 +1,47 @@
 # Money Maker🤑
 
-**Professional AI Agent for Financial Intelligence & Automation**
+**Advanced Autonomous AI Agent for Financial Intelligence, Sports Betting, and Crypto Trading**
 
-Money Maker🤑 is a high-performance AI agent built for 24/7 financial operations, market analysis, and automated decision-making. It leverages a multi-layer AI infrastructure and a professional dashboard for real-time monitoring and control.
+Money Maker🤑 is a production-ready, autonomous AI agent designed to dominate markets through disciplined reasoning, rigorous risk management, and continuous self-improvement.
 
-## 🚀 Features
+## 🏛 Production-Ready Architecture
 
-- **Multi-Layer API Key System**: Support for multiple API keys across Groq, Hugging Face, Google, OpenAI, and Anthropic with automatic rotation and failover via `api_proxy.py`.
-- **Persistent Memory & Logs**: Deep integration with Supabase and Postgres for long-term data retention and auditability.
-- **Advanced Skills**:
-    - **Market Odds**: Real-time sports betting odds via The Odds API.
-    - **Web Scraping**: Redundant scraping system with Apify integration.
-    - **Wikipedia**: Direct access to global knowledge.
-    - **Skill Creator**: Ability to generate and deploy new skills on the fly.
-- **Professional UI**: ChatGPT-inspired Obsidian Pulse aesthetic with real-time logs, memory management, and market dashboards.
-- **24/7 Autonomy**: Automated cron management, self-healing runtime, and Cloudflare keep-alive integration.
-- **Secure & Private**: Root access within Docker Space, encrypted API key storage, and private dataset backups.
+```
+User
+   │
+   ▼
+AI Orchestrator (cron_manager.py)
+   │
+   ├── Reasoning Engine (skills/reasoning/decision_engine.py)
+   ├── Risk Manager (skills/finance/risk_manager.py)
+   ├── Sports Betting Module (skills/betting/)
+   ├── Crypto Trading Module (skills/crypto/)
+   ├── Math & Metrics (skills/math/metrics.py)
+   ├── Self-Improvement (skills/analysis/self_improvement.py)
+   ├── API Proxy (api_proxy.py)
+   └── Database (Supabase/PostgreSQL via persistence_manager.py)
+```
+
+## 🚀 Core Capabilities
+
+### 1. Market Analysis & Execution
+- **Probability Estimation**: Calculates Expected Value (EV) and compares estimated probabilities against market implied odds.
+- **Multi-Source Data**: Scrapes odds, prices, and sentiment from multiple redundant sources (Apify, Wikipedia, Custom Scrapers).
+- **24/7 Operations**: Continuous market monitoring and automated execution.
+
+### 2. Rigorous Risk Management
+- **Dynamic Sizing**: Uses Fractional Kelly Criterion for optimal bankroll growth.
+- **Hard Limits**: Implements daily loss limits and maximum drawdown protection.
+- **Trade Validation**: Every action is cross-verified for positive EV and confidence thresholds.
+
+### 3. Financial & Trading Intelligence
+- **Technical Analysis**: Built-in RSI, MACD, EMA, SMA, and Bollinger Bands.
+- **Betting Metrics**: CLV (Closing Line Value) tracking, Arbitrage detection, and Line movement analysis.
+
+### 4. AI Reasoning & Self-Improvement
+- **Explanatory Logic**: The agent explains the "Why" behind every decision.
+- **Mistake Detection**: Automatically tracks prediction accuracy and detects recurring mistake patterns.
+- **Autonomous Retraining**: Capable of triggering model retraining based on concept drift and performance metrics.
 
 ## 🛠 Setup
 
@@ -23,25 +49,20 @@ Money Maker🤑 is a high-performance AI agent built for 24/7 financial operatio
 
 | Variable | Description |
 | :--- | :--- |
-| `GATEWAY_TOKEN` | Auth token for dashboard access |
-| `HF_TOKEN` | Hugging Face token with write access for backups |
-| `SUPABASE_URL` | Your Supabase project URL |
-| `SUPABASE_KEY` | Your Supabase API key |
-| `POSTGRES_URL` | Postgres connection string |
-| `ODDS_API_KEY` | API key for the-odds-api.com |
-| `APIFY_TOKEN` | Token for Apify scraping tasks |
-| `GROQ_API_KEYS` | Comma-separated pool of Groq keys |
-| `HUGGINGFACE_API_KEYS` | Comma-separated pool of HF keys |
-| `GOOGLE_API_KEYS` | Comma-separated pool of Google/Gemini keys |
+| `GROQ_API_KEYS` | Pool of Groq keys for reasoning |
+| `HUGGINGFACE_API_KEYS` | Pool of HF keys for analysis |
+| `GOOGLE_API_KEYS` | Pool of Google/Gemini keys |
+| `SUPABASE_URL` / `KEY` | Backend persistence |
+| `ODDS_API_KEY` | Sports market data |
+| `APIFY_TOKEN` | Web scraping power |
 
 ## 📦 Deployment
 
-Deploy directly to **Hugging Face Docker Spaces**. The `Dockerfile` is pre-configured for root access and 24/7 operation.
+Optimized for **Hugging Face Docker Spaces** with root access and persistent volume sync.
 
 ```bash
-# Local development
 docker-compose up --build
 ```
 
 ---
-*Created for the elite traders and automation engineers of 2029.*
+*Built for the Year 2029. Focus on Positive EV. Manage Risk. Improve Daily.*
