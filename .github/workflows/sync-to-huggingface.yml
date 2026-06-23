@@ -1,18 +1,38 @@
-name: Sync to Hugging Face hub
+name: Sync to Hugging Face Hub
+
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - money-maker-agent-842977662745521548
   workflow_dispatch:
 
 jobs:
   sync-to-hub:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: true
-      - name: Push to hub
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Push to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push --force https://Mushki254:$HF_TOKEN@huggingface.co/spaces/Mushki254/Money-maker main
+        run: |
+          git add -A
+          git commit -m "Sync to Hugging Face" || true
+
+          echo "Current branch:"
+          git branch --show-current
+
+          git push --force \
+            https://Mushki254:${HF_TOKEN}@huggingface.co/spaces/Mushki254/Money-maker \
+            HEAD:main
