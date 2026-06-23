@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""HuggingMes Hermes state backup via Hugging Face Datasets."""
+"""Money-Maker🤑 Money-Maker🤑 state backup via Hugging Face Datasets."""
 
 import hashlib
 import json
@@ -202,7 +202,7 @@ def restore() -> bool:
         return False
 
     repo_id = resolve_backup_repo()
-    write_status("restoring", f"Restoring Hermes state from {repo_id}")
+    write_status("restoring", f"Restoring Money-Maker🤑 state from {repo_id}")
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
             snapshot_download(repo_id=repo_id, repo_type="dataset", token=HF_TOKEN, local_dir=tmpdir)
@@ -225,7 +225,7 @@ def restore() -> bool:
                 else:
                     shutil.copy2(child, target)
 
-        write_status("restored", f"Restored Hermes state from {repo_id}")
+        write_status("restored", f"Restored Money-Maker🤑 state from {repo_id}")
         return True
     except RepositoryNotFoundError:
         write_status("fresh", f"Backup dataset {repo_id} does not exist yet.")
@@ -259,16 +259,16 @@ def sync_once(last_fingerprint: str | None = None, last_marker: tuple[int, int, 
     repo_id = ensure_repo_exists()
     current_marker = metadata_marker(HERMES_HOME)
     if last_marker is not None and current_marker == last_marker:
-        write_status("synced", "No Hermes state changes detected (marker match).")
+        write_status("synced", "No Money-Maker🤑 state changes detected (marker match).")
         return (last_fingerprint or "", current_marker)
 
     current_fingerprint = fingerprint_dir(HERMES_HOME)
     if last_fingerprint is not None and current_fingerprint == last_fingerprint:
-        write_status("synced", "No Hermes state changes detected (fingerprint match).")
+        write_status("synced", "No Money-Maker🤑 state changes detected (fingerprint match).")
         return (last_fingerprint, current_marker)
 
     hostname = socket.gethostname()
-    write_status("syncing", f"Uploading Hermes state to {repo_id} from {hostname}")
+    write_status("syncing", f"Uploading Money-Maker🤑 state to {repo_id} from {hostname}")
     snapshot_dir = create_snapshot_dir(HERMES_HOME)
     try:
         upload_folder(
@@ -276,13 +276,13 @@ def sync_once(last_fingerprint: str | None = None, last_marker: tuple[int, int, 
             repo_id=repo_id,
             repo_type="dataset",
             token=HF_TOKEN,
-            commit_message=f"HuggingMes sync [{hostname}] {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}",
+            commit_message=f"Money-Maker🤑 sync [{hostname}] {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}",
             ignore_patterns=[".git/*", ".git"],
         )
     finally:
         shutil.rmtree(snapshot_dir, ignore_errors=True)
 
-    write_status("success", f"Uploaded Hermes state to {repo_id}", fingerprint=current_fingerprint, marker=current_marker)
+    write_status("success", f"Uploaded Money-Maker🤑 state to {repo_id}", fingerprint=current_fingerprint, marker=current_marker)
     return (current_fingerprint, current_marker)
 
 
@@ -298,20 +298,20 @@ def loop() -> int:
         write_status("configured", f"Backup loop active for {repo_id} with {INTERVAL}s interval.")
     except Exception as exc:
         write_status("error", str(exc))
-        print(f"Hermes sync error: {exc}")
+        print(f"Money-Maker🤑 sync error: {exc}")
         return 1
 
     last_fingerprint = fingerprint_dir(HERMES_HOME)
     last_marker = metadata_marker(HERMES_HOME)
     time.sleep(INITIAL_DELAY)
-    print(f"Hermes state sync started: every {INTERVAL}s -> {repo_id}")
+    print(f"Money-Maker🤑 state sync started: every {INTERVAL}s -> {repo_id}")
 
     while not STOP_EVENT.is_set():
         try:
             last_fingerprint, last_marker = sync_once(last_fingerprint, last_marker)
         except Exception as exc:
             write_status("error", f"Sync failed: {exc}")
-            print(f"Hermes sync failed: {exc}")
+            print(f"Money-Maker🤑 sync failed: {exc}")
 
         # Add 10% jitter to interval to avoid synchronized commits from multiple containers
         jitter = random.uniform(0.9, 1.1)
@@ -333,7 +333,7 @@ def main() -> int:
             return 0
         except Exception as exc:
             write_status("error", f"Shutdown sync failed: {exc}")
-            print(f"Hermes sync: shutdown sync failed: {exc}")
+            print(f"Money-Maker🤑 sync: shutdown sync failed: {exc}")
             return 1
     if command == "loop":
         return loop()

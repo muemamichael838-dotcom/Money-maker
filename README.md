@@ -2,7 +2,7 @@
 title: Money Maker🤑
 emoji: 🤑
 colorFrom: green
-colorTo: blue
+colorTo: emerald
 sdk: docker
 pinned: false
 ---

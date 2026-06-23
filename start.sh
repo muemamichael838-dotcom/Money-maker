@@ -42,7 +42,7 @@ export OPENAI_BASE_URL="http://127.0.0.1:8000/v1"
 
 # Gateway loop
 while true; do
-  echo "Launching Hermes AI Gateway..."
+  echo "Launching Money-Maker🤑 AI Gateway..."
   (hermes gateway run --port "$GATEWAY_API_PORT" 2>&1 | tee -a "$HERMES_HOME/logs/gateway.log") &
   GATEWAY_PID=$!
   wait "$GATEWAY_PID" || echo "Gateway exited."
