@@ -1,57 +1,53 @@
 ---
-title: MarketInsights-AI
-emoji: 📊
+title: MarketInsights-AI (Enterprise)
+emoji: 🛡️
 colorFrom: blue
 colorTo: indigo
 sdk: docker
 pinned: false
 ---
 
-# MarketInsights-AI
+# MarketInsights-AI (Enterprise Edition)
 
-**Advanced Autonomous AI Agent for Market Research, Data Science, and Educational Analysis**
+**Privacy-First, Human-in-the-Loop AI Agent for Research and Analysis**
 
-MarketInsights-AI is a professional-grade research agent designed for automated data gathering, sentiment analysis, and multi-source market reporting.
+MarketInsights-AI is an enterprise-grade autonomous agent built for secure data gathering, research, and technical analysis. It prioritizes safety, transparency, and human oversight.
 
-## 🚀 Key Features
+## 🛡 Enterprise Features
 
-- **Educational Research**: Optimized for gathering and summarizing data from multiple public sources (Wikipedia, News, Public Forums).
-- **Sentiment Analysis**: Real-time analysis of market sentiment trends using state-of-the-art NLP models.
-- **Robust Persistence**: Securely stores research data and logs locally with optional cloud synchronization.
-- **Multi-Key High Availability**: Uses a failover system for API keys to ensure continuous research capabilities.
-- **In-Built Text Splitting**: Intelligent processing of large datasets to maintain high-quality summaries.
+- **Human-in-the-Loop (HITL)**: Crucial destructive actions (like deleting skills or executing shell commands) are paused until a human provides explicit confirmation.
+- **Privacy-First Architecture**: Runs entirely within your VPC/Space. Supports local SQLite/Postgres for complete data sovereignty.
+- **Non-Root Execution**: Hardened security posture running as a restricted user to comply with enterprise safety standards.
+- **Audit Logging**: Every decision and reasoning step is recorded with deep transparency in a persistent database.
+- **Multi-Key Redundancy**: Zero-downtime operations with automatic rotation across multiple LLM and Data providers.
 
-## ⚖️ Financial Disclaimer
+## ⚖️ Compliance & Safety
 
-**IMPORTANT: This software is for EDUCATIONAL and RESEARCH purposes only.**
-- It does NOT provide financial advice.
-- It is NOT a trading platform.
-- The authors are not responsible for any decisions made based on the data provided by this agent.
-- Always perform your own due diligence.
+- **Manual Approval Required**: Skill deletion and core system changes require human confirmation.
+- **No Financial Advice**: Purely for educational and research purposes.
+- **Sandboxed Execution**: Designed for restricted environments with limited system-level access.
 
 ## 🏛 Architecture
 
 ```
-User
+User ↔ Human-in-the-Loop Gate
    │
    ▼
-AI Orchestrator (cron_manager.py)
+AI Orchestrator
    │
-   ├── Reasoning Engine (skills/reasoning/decision_engine.py)
-   ├── Analysis Module (skills/analysis/)
-   ├── Data Scrapers (skills/web_scraper.py)
-   ├── Math & Metrics (skills/math/metrics.py)
-   ├── API Proxy (api_proxy.py)
-   └── Persistence Layer (persistence_manager.py)
+   ├── Safety Engine (Reasoning + HITL)
+   ├── Analysis Module
+   ├── Multi-Source Data
+   └── Secure Persistence
 ```
 
-## 📦 Deployment
+## 📦 Enterprise Deployment
 
-MarketInsights-AI is designed to run efficiently on small server environments and is optimized for Hugging Face Docker Spaces.
+Optimized for **Hugging Face Enterprise** and Docker Spaces.
 
 ```bash
 docker-compose up --build
 ```
 
 ---
-*Focus on Data. Analyze Risk. Learn Daily.*
+*Built for Security. Managed by Humans. Powered by AI.*
