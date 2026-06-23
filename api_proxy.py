@@ -25,7 +25,6 @@ for provider in KEY_POOLS:
 def get_next_key(provider):
     if not KEY_POOLS.get(provider):
         return os.environ.get(f"{provider.upper()}_API_KEY")
-    # Simple round-robin or random
     key = KEY_POOLS[provider].pop(0)
     KEY_POOLS[provider].append(key)
     return key
@@ -61,10 +60,9 @@ async def chat_completions(request: Request):
 
     raise HTTPException(status_code=500, detail=str(last_exception))
 
-@app.get("/v1/models")
-async def list_models():
-    # Proxying model list if needed, or return a static list
-    return {"data": [{"id": "gpt-4"}, {"id": "claude-3-opus-20240229"}]}
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

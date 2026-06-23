@@ -1,8 +1,11 @@
 import os
 import requests
+from skills.utils.multi_key import MultiKeyManager
+
+mkm = MultiKeyManager("ODDS_API_KEYS")
 
 def get_odds(sport='upcoming', regions='us', markets='h2h'):
-    api_key = os.environ.get("ODDS_API_KEY")
+    api_key = mkm.get_key()
     if not api_key:
         return "Error: ODDS_API_KEY not set"
 
@@ -13,12 +16,18 @@ def get_odds(sport='upcoming', regions='us', markets='h2h'):
         'markets': markets,
     }
 
-    response = requests.get(url, params=params)
-    if response.status_code != 200:
-        return f"Error: {response.status_code} - {response.text}"
+    try:
+        response = requests.get(url, params=params)
+        if response.status_code == 429: # Rate limit
+            mkm.rotate_on_error()
+            return get_odds(sport, regions, markets)
 
-    return response.json()
+        if response.status_code != 200:
+            return f"Error: {response.status_code} - {response.text}"
+
+        return response.json()
+    except Exception as e:
+        return f"Request failed: {e}"
 
 if __name__ == "__main__":
-    # Example usage
     print(get_odds())

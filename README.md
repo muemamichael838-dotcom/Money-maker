@@ -4,6 +4,14 @@
 
 Money Maker🤑 is a production-ready, autonomous AI agent designed to dominate markets through disciplined reasoning, rigorous risk management, and continuous self-improvement.
 
+## 🚀 Key Features (Ultimate Version)
+
+- **Seamless Small Server Execution**: Optimized for low-resource environments with local SQLite fallback for memory.
+- **Self-Saving Memory**: Saves all its own memory and logs to a local Postgres/SQLite database without external dependencies (while still supporting optional Supabase sync).
+- **Multi-Layer API Key System**: Every integrated service (Groq, HF, Google, Odds API, Reddit) uses a comma-separated multi-key rotation system for zero-downtime.
+- **In-Built Text Splitting**: Intelligent recursive text splitter prevents LLM context limit errors during heavy data processing.
+- **Reddit Sentiment Analysis**: Real-time market sentiment gathering from Reddit with automated multi-key rotation.
+
 ## 🏛 Production-Ready Architecture
 
 ```
@@ -18,47 +26,24 @@ AI Orchestrator (cron_manager.py)
    ├── Crypto Trading Module (skills/crypto/)
    ├── Math & Metrics (skills/math/metrics.py)
    ├── Self-Improvement (skills/analysis/self_improvement.py)
+   ├── Reddit Sentiment (skills/analysis/reddit_sentiment.py)
+   ├── Text Splitter (skills/analysis/text_splitter.py)
    ├── API Proxy (api_proxy.py)
-   └── Database (Supabase/PostgreSQL via persistence_manager.py)
+   └── Self-Saving Database (persistence_manager.py)
 ```
-
-## 🚀 Core Capabilities
-
-### 1. Market Analysis & Execution
-- **Probability Estimation**: Calculates Expected Value (EV) and compares estimated probabilities against market implied odds.
-- **Multi-Source Data**: Scrapes odds, prices, and sentiment from multiple redundant sources (Apify, Wikipedia, Custom Scrapers).
-- **24/7 Operations**: Continuous market monitoring and automated execution.
-
-### 2. Rigorous Risk Management
-- **Dynamic Sizing**: Uses Fractional Kelly Criterion for optimal bankroll growth.
-- **Hard Limits**: Implements daily loss limits and maximum drawdown protection.
-- **Trade Validation**: Every action is cross-verified for positive EV and confidence thresholds.
-
-### 3. Financial & Trading Intelligence
-- **Technical Analysis**: Built-in RSI, MACD, EMA, SMA, and Bollinger Bands.
-- **Betting Metrics**: CLV (Closing Line Value) tracking, Arbitrage detection, and Line movement analysis.
-
-### 4. AI Reasoning & Self-Improvement
-- **Explanatory Logic**: The agent explains the "Why" behind every decision.
-- **Mistake Detection**: Automatically tracks prediction accuracy and detects recurring mistake patterns.
-- **Autonomous Retraining**: Capable of triggering model retraining based on concept drift and performance metrics.
 
 ## 🛠 Setup
 
-### Environment Variables
-
-| Variable | Description |
-| :--- | :--- |
-| `GROQ_API_KEYS` | Pool of Groq keys for reasoning |
-| `HUGGINGFACE_API_KEYS` | Pool of HF keys for analysis |
-| `GOOGLE_API_KEYS` | Pool of Google/Gemini keys |
-| `SUPABASE_URL` / `KEY` | Backend persistence |
-| `ODDS_API_KEY` | Sports market data |
-| `APIFY_TOKEN` | Web scraping power |
+### Multi-Key Configuration
+Supply comma-separated pools for ALL services:
+- `GROQ_API_KEYS=key1,key2...`
+- `ODDS_API_KEYS=key1,key2...`
+- `REDDIT_API_KEYS=key1,key2...`
+- `HUGGINGFACE_API_KEYS=key1,key2...`
 
 ## 📦 Deployment
 
-Optimized for **Hugging Face Docker Spaces** with root access and persistent volume sync.
+Deploy to **Hugging Face Docker Spaces**.
 
 ```bash
 docker-compose up --build

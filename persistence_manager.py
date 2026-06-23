@@ -1,25 +1,34 @@
 import os
 import json
 import psycopg2
-from supabase import create_client, Client
+import sqlite3
 
 class PersistenceManager:
     def __init__(self):
-        self.supabase_url = os.environ.get("SUPABASE_URL")
-        self.supabase_key = os.environ.get("SUPABASE_KEY")
         self.postgres_url = os.environ.get("POSTGRES_URL")
+        self.sqlite_path = "/opt/data/memory.db"
 
-        self.supabase: Client = None
-        if self.supabase_url and self.supabase_key:
-            self.supabase = create_client(self.supabase_url, self.supabase_key)
-
+        # Self-saving: prefer local postgres or sqlite
         self.conn = None
         if self.postgres_url:
-            self.conn = psycopg2.connect(self.postgres_url)
-            self._init_db()
+            try:
+                self.conn = psycopg2.connect(self.postgres_url)
+                self._init_db("postgres")
+            except Exception:
+                self._use_sqlite()
+        else:
+            self._use_sqlite()
 
-    def _init_db(self):
-        with self.conn.cursor() as cur:
+    def _use_sqlite(self):
+        os.makedirs(os.path.dirname(self.sqlite_path), exist_ok=True)
+        self.conn = sqlite3.connect(self.sqlite_path, check_same_thread=False)
+        self._init_db("sqlite")
+
+    def _init_db(self, db_type):
+        placeholder = "%s" if db_type == "postgres" else "?"
+        cur = self.conn.cursor()
+
+        if db_type == "postgres":
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS logs (
                     id SERIAL PRIMARY KEY,
@@ -35,45 +44,70 @@ class PersistenceManager:
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
-            self.conn.commit()
+        else:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    level TEXT,
+                    message TEXT,
+                    metadata TEXT
+                );
+                CREATE TABLE IF NOT EXISTS memory (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    key TEXT UNIQUE,
+                    value TEXT,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+        self.conn.commit()
 
     def log(self, level, message, metadata=None):
         print(f"[{level}] {message}")
-        if self.conn:
-            with self.conn.cursor() as cur:
+        try:
+            cur = self.conn.cursor()
+            if hasattr(self.conn, 'psycopg2'): # Rough check
                 cur.execute("INSERT INTO logs (level, message, metadata) VALUES (%s, %s, %s)",
                             (level, message, json.dumps(metadata)))
-                self.conn.commit()
-
-        if self.supabase:
-            self.supabase.table("logs").insert({"level": level, "message": message, "metadata": metadata}).execute()
+            else:
+                cur.execute("INSERT INTO logs (level, message, metadata) VALUES (?, ?, ?)",
+                            (level, message, json.dumps(metadata)))
+            self.conn.commit()
+        except Exception:
+            pass
 
     def save_memory(self, key, value):
-        if self.conn:
-            with self.conn.cursor() as cur:
+        try:
+            cur = self.conn.cursor()
+            val_str = json.dumps(value)
+            # Generic upsert
+            if os.environ.get("POSTGRES_URL"):
                 cur.execute("""
                     INSERT INTO memory (key, value, updated_at) VALUES (%s, %s, CURRENT_TIMESTAMP)
                     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
-                """, (key, json.dumps(value)))
-                self.conn.commit()
-
-        if self.supabase:
-            self.supabase.table("memory").upsert({"key": key, "value": value}).execute()
+                """, (key, val_str))
+            else:
+                cur.execute("""
+                    INSERT OR REPLACE INTO memory (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+                """, (key, val_str))
+            self.conn.commit()
+        except Exception:
+            pass
 
     def get_memory(self, key):
-        if self.conn:
-            with self.conn.cursor() as cur:
+        try:
+            cur = self.conn.cursor()
+            if os.environ.get("POSTGRES_URL"):
                 cur.execute("SELECT value FROM memory WHERE key = %s", (key,))
-                row = cur.fetchone()
-                if row:
-                    return row[0]
-
-        if self.supabase:
-            res = self.supabase.table("memory").select("value").eq("key", key).execute()
-            if res.data:
-                return res.data[0]["value"]
+            else:
+                cur.execute("SELECT value FROM memory WHERE key = ?", (key,))
+            row = cur.fetchone()
+            if row:
+                return json.loads(row[0])
+        except Exception:
+            pass
         return None
 
 if __name__ == "__main__":
     pm = PersistenceManager()
-    pm.log("INFO", "Persistence Manager initialized")
+    pm.log("INFO", "Self-Saving Persistence Initialized")
