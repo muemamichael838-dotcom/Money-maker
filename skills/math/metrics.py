@@ -6,7 +6,7 @@ def calculate_ev(win_prob, win_amount, lose_amount):
 
 def kelly_criterion(win_prob, odds):
     """Calculate Kelly Criterion stake sizing.
-    odds is decimal odds (e.g., 2.0 for even money).
+    odds is decimal odds (e.g., 2.0 for even parity).
     """
     b = odds - 1
     p = win_prob

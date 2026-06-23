@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Money-Maker🤑 Money-Maker🤑 state backup via Hugging Face Datasets."""
+"""MarketInsights-AI MarketInsights-AI state backup via Hugging Face Datasets."""
 
 import hashlib
 import json
@@ -25,9 +25,9 @@ from huggingface_hub.errors import HfHubHTTPError, RepositoryNotFoundError
 
 logging.getLogger("huggingface_hub").setLevel(logging.ERROR)
 
-HERMES_HOME = Path(os.environ.get("HERMES_HOME", "/opt/data"))
+MARKET_INSIGHTS_HOME = Path(os.environ.get("MARKET_INSIGHTS_HOME", "/opt/data"))
 STATUS_FILE = Path("/tmp/huggingmes-sync-status.json")
-STATE_FILE = HERMES_HOME / ".huggingmes-sync-state.json"
+STATE_FILE = MARKET_INSIGHTS_HOME / ".huggingmes-sync-state.json"
 INTERVAL = int(os.environ.get("SYNC_INTERVAL", "600"))
 INITIAL_DELAY = int(os.environ.get("SYNC_START_DELAY", "10"))
 HF_TOKEN = os.environ.get("HF_TOKEN", "").strip()
@@ -71,7 +71,7 @@ def write_status(status: str, message: str, fingerprint: str | None = None, mark
     except OSError:
         pass
 
-    # Update persistent state file in HERMES_HOME
+    # Update persistent state file in MARKET_INSIGHTS_HOME
     if fingerprint or marker:
         state = {}
         if STATE_FILE.exists():
@@ -202,7 +202,7 @@ def restore() -> bool:
         return False
 
     repo_id = resolve_backup_repo()
-    write_status("restoring", f"Restoring Money-Maker🤑 state from {repo_id}")
+    write_status("restoring", f"Restoring MarketInsights-AI state from {repo_id}")
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
             snapshot_download(repo_id=repo_id, repo_type="dataset", token=HF_TOKEN, local_dir=tmpdir)
@@ -211,11 +211,11 @@ def restore() -> bool:
                 write_status("fresh", "Backup dataset is empty. Starting fresh.")
                 return True
 
-            HERMES_HOME.mkdir(parents=True, exist_ok=True)
+            MARKET_INSIGHTS_HOME.mkdir(parents=True, exist_ok=True)
             for child in tmp_path.iterdir():
                 if should_exclude(child.name, child):
                     continue
-                target = HERMES_HOME / child.name
+                target = MARKET_INSIGHTS_HOME / child.name
                 if target.is_dir():
                     shutil.rmtree(target, ignore_errors=True)
                 elif target.exists():
@@ -225,7 +225,7 @@ def restore() -> bool:
                 else:
                     shutil.copy2(child, target)
 
-        write_status("restored", f"Restored Money-Maker🤑 state from {repo_id}")
+        write_status("restored", f"Restored MarketInsights-AI state from {repo_id}")
         return True
     except RepositoryNotFoundError:
         write_status("fresh", f"Backup dataset {repo_id} does not exist yet.")
@@ -257,32 +257,32 @@ def sync_once(last_fingerprint: str | None = None, last_marker: tuple[int, int, 
                 pass
 
     repo_id = ensure_repo_exists()
-    current_marker = metadata_marker(HERMES_HOME)
+    current_marker = metadata_marker(MARKET_INSIGHTS_HOME)
     if last_marker is not None and current_marker == last_marker:
-        write_status("synced", "No Money-Maker🤑 state changes detected (marker match).")
+        write_status("synced", "No MarketInsights-AI state changes detected (marker match).")
         return (last_fingerprint or "", current_marker)
 
-    current_fingerprint = fingerprint_dir(HERMES_HOME)
+    current_fingerprint = fingerprint_dir(MARKET_INSIGHTS_HOME)
     if last_fingerprint is not None and current_fingerprint == last_fingerprint:
-        write_status("synced", "No Money-Maker🤑 state changes detected (fingerprint match).")
+        write_status("synced", "No MarketInsights-AI state changes detected (fingerprint match).")
         return (last_fingerprint, current_marker)
 
     hostname = socket.gethostname()
-    write_status("syncing", f"Uploading Money-Maker🤑 state to {repo_id} from {hostname}")
-    snapshot_dir = create_snapshot_dir(HERMES_HOME)
+    write_status("syncing", f"Uploading MarketInsights-AI state to {repo_id} from {hostname}")
+    snapshot_dir = create_snapshot_dir(MARKET_INSIGHTS_HOME)
     try:
         upload_folder(
             folder_path=str(snapshot_dir),
             repo_id=repo_id,
             repo_type="dataset",
             token=HF_TOKEN,
-            commit_message=f"Money-Maker🤑 sync [{hostname}] {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}",
+            commit_message=f"MarketInsights-AI sync [{hostname}] {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}",
             ignore_patterns=[".git/*", ".git"],
         )
     finally:
         shutil.rmtree(snapshot_dir, ignore_errors=True)
 
-    write_status("success", f"Uploaded Money-Maker🤑 state to {repo_id}", fingerprint=current_fingerprint, marker=current_marker)
+    write_status("success", f"Uploaded MarketInsights-AI state to {repo_id}", fingerprint=current_fingerprint, marker=current_marker)
     return (current_fingerprint, current_marker)
 
 
@@ -298,20 +298,20 @@ def loop() -> int:
         write_status("configured", f"Backup loop active for {repo_id} with {INTERVAL}s interval.")
     except Exception as exc:
         write_status("error", str(exc))
-        print(f"Money-Maker🤑 sync error: {exc}")
+        print(f"MarketInsights-AI sync error: {exc}")
         return 1
 
-    last_fingerprint = fingerprint_dir(HERMES_HOME)
-    last_marker = metadata_marker(HERMES_HOME)
+    last_fingerprint = fingerprint_dir(MARKET_INSIGHTS_HOME)
+    last_marker = metadata_marker(MARKET_INSIGHTS_HOME)
     time.sleep(INITIAL_DELAY)
-    print(f"Money-Maker🤑 state sync started: every {INTERVAL}s -> {repo_id}")
+    print(f"MarketInsights-AI state sync started: every {INTERVAL}s -> {repo_id}")
 
     while not STOP_EVENT.is_set():
         try:
             last_fingerprint, last_marker = sync_once(last_fingerprint, last_marker)
         except Exception as exc:
             write_status("error", f"Sync failed: {exc}")
-            print(f"Money-Maker🤑 sync failed: {exc}")
+            print(f"MarketInsights-AI sync failed: {exc}")
 
         # Add 10% jitter to interval to avoid synchronized commits from multiple containers
         jitter = random.uniform(0.9, 1.1)
@@ -321,7 +321,7 @@ def loop() -> int:
 
 
 def main() -> int:
-    HERMES_HOME.mkdir(parents=True, exist_ok=True)
+    MARKET_INSIGHTS_HOME.mkdir(parents=True, exist_ok=True)
     if len(sys.argv) < 2:
         return loop()
     command = sys.argv[1]
@@ -333,7 +333,7 @@ def main() -> int:
             return 0
         except Exception as exc:
             write_status("error", f"Shutdown sync failed: {exc}")
-            print(f"Money-Maker🤑 sync: shutdown sync failed: {exc}")
+            print(f"MarketInsights-AI sync: shutdown sync failed: {exc}")
             return 1
     if command == "loop":
         return loop()

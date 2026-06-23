@@ -33,8 +33,8 @@ def job_data_cleanup():
     pass
 
 def run_scheduler():
-    pm.log("INFO", "Money Maker Orchestrator started")
-    schedule.every(10).minutes.do(job_market_scan)
+    pm.log("INFO", "MarketInsights-AI Orchestrator started")
+    schedule.every(60).minutes.do(job_market_scan)
     schedule.every(24).hours.do(job_data_cleanup)
 
     while True:

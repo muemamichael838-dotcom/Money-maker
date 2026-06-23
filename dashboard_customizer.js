@@ -1,17 +1,12 @@
-// This script will be loaded by env-builder.html or a similar mechanism to customize the UI
 document.addEventListener('DOMContentLoaded', () => {
     const title = document.querySelector('title');
-    if (title) title.innerText = 'Money Maker🤑 - AI Agent';
+    if (title) title.innerText = 'MarketInsights-AI';
 
     const brand = document.querySelector('.brand-name');
-    if (brand) brand.innerHTML = 'Money Maker🤑';
+    if (brand) brand.innerHTML = 'MarketInsights-AI';
 
-    // Add custom links to the sidebar if possible
-    const sidebar = document.querySelector('.sidebar-nav');
-    if (sidebar) {
-        const oddsLink = document.createElement('a');
-        oddsLink.href = '#/odds';
-        oddsLink.innerText = 'Market Odds';
-        sidebar.appendChild(oddsLink);
+    const footer = document.querySelector('footer');
+    if (footer) {
+        footer.innerHTML += '<br><small>For Educational Research Purposes Only. No Financial Advice Provided.</small>';
     }
 });

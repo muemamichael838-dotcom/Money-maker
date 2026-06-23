@@ -12,4 +12,4 @@ def search_wikipedia(query):
     return response.json()
 
 if __name__ == "__main__":
-    print(search_wikipedia("Money"))
+    print(search_wikipedia("Market Analysis"))

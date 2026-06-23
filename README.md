@@ -1,27 +1,35 @@
 ---
-title: Money Maker🤑
-emoji: 🤑
-colorFrom: green
-colorTo: blue
+title: MarketInsights-AI
+emoji: 📊
+colorFrom: blue
+colorTo: indigo
 sdk: docker
 pinned: false
 ---
 
-# Money Maker🤑
+# MarketInsights-AI
 
-**Advanced Autonomous AI Agent for Financial Intelligence, Sports Betting, and Crypto Trading**
+**Advanced Autonomous AI Agent for Market Research, Data Science, and Educational Analysis**
 
-Money Maker🤑 is a production-ready, autonomous AI agent designed to dominate markets through disciplined reasoning, rigorous risk management, and continuous self-improvement.
+MarketInsights-AI is a professional-grade research agent designed for automated data gathering, sentiment analysis, and multi-source market reporting.
 
-## 🚀 Key Features (Ultimate Version)
+## 🚀 Key Features
 
-- **Seamless Small Server Execution**: Optimized for low-resource environments with local SQLite fallback for memory.
-- **Self-Saving Memory**: Saves all its own memory and logs to a local Postgres/SQLite database without external dependencies (while still supporting optional Supabase sync).
-- **Multi-Layer API Key System**: Every integrated service (Groq, HF, Google, Odds API, Reddit) uses a comma-separated multi-key rotation system for zero-downtime.
-- **In-Built Text Splitting**: Intelligent recursive text splitter prevents LLM token limit errors during heavy data processing.
-- **Reddit Sentiment Analysis**: Real-time market sentiment gathering from Reddit with automated multi-key rotation.
+- **Educational Research**: Optimized for gathering and summarizing data from multiple public sources (Wikipedia, News, Public Forums).
+- **Sentiment Analysis**: Real-time analysis of market sentiment trends using state-of-the-art NLP models.
+- **Robust Persistence**: Securely stores research data and logs locally with optional cloud synchronization.
+- **Multi-Key High Availability**: Uses a failover system for API keys to ensure continuous research capabilities.
+- **In-Built Text Splitting**: Intelligent processing of large datasets to maintain high-quality summaries.
 
-## 🏛 Production-Ready Architecture
+## ⚖️ Financial Disclaimer
+
+**IMPORTANT: This software is for EDUCATIONAL and RESEARCH purposes only.**
+- It does NOT provide financial advice.
+- It is NOT a trading platform.
+- The authors are not responsible for any decisions made based on the data provided by this agent.
+- Always perform your own due diligence.
+
+## 🏛 Architecture
 
 ```
 User
@@ -30,33 +38,20 @@ User
 AI Orchestrator (cron_manager.py)
    │
    ├── Reasoning Engine (skills/reasoning/decision_engine.py)
-   ├── Risk Manager (skills/finance/risk_manager.py)
-   ├── Sports Betting Module (skills/betting/)
-   ├── Crypto Trading Module (skills/crypto/)
+   ├── Analysis Module (skills/analysis/)
+   ├── Data Scrapers (skills/web_scraper.py)
    ├── Math & Metrics (skills/math/metrics.py)
-   ├── Self-Improvement (skills/analysis/self_improvement.py)
-   ├── Reddit Sentiment (skills/analysis/reddit_sentiment.py)
-   ├── Text Splitter (skills/analysis/text_splitter.py)
    ├── API Proxy (api_proxy.py)
-   └── Self-Saving Database (persistence_manager.py)
+   └── Persistence Layer (persistence_manager.py)
 ```
-
-## 🛠 Setup
-
-### Multi-Key Configuration
-Supply comma-separated pools for ALL services:
-- `GROQ_API_KEYS=key1,key2...`
-- `ODDS_API_KEYS=key1,key2...`
-- `REDDIT_API_KEYS=key1,key2...`
-- `HUGGINGFACE_API_KEYS=key1,key2...`
 
 ## 📦 Deployment
 
-Deploy to **Hugging Face Docker Spaces**.
+MarketInsights-AI is designed to run efficiently on small server environments and is optimized for Hugging Face Docker Spaces.
 
 ```bash
 docker-compose up --build
 ```
 
 ---
-*Built for the Year 2029. Focus on Positive EV. Manage Risk. Improve Daily.*
+*Focus on Data. Analyze Risk. Learn Daily.*

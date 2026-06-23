@@ -14,7 +14,7 @@ def get_reddit_sentiment(subreddit, query):
         'sort': 'new',
         'limit': 25
     }
-    headers = {'User-Agent': f'MoneyMaker/0.1 (Key: {api_key})'}
+    headers = {'User-Agent': f'MarketInsights/0.1 (Key: {api_key})'}
 
     try:
         response = requests.get(url, params=params, headers=headers)

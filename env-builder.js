@@ -109,7 +109,7 @@ const FIELDS = [
   {
     "g": "Core", "icon": "⚡",
     "k": "GATEWAY_TOKEN",
-    "lbl": "Gateway token — protects the Money-Maker🤑 web UI",
+    "lbl": "Gateway token — protects the MarketInsights-AI web UI",
     "type": "password", "secret": 1, "common": 1, "tag": "critical"
   },
   {
@@ -324,13 +324,13 @@ const FIELDS = [
   {
     "g": "Advanced", "icon": "⚙️",
     "k": "API_SERVER_PORT",
-    "lbl": "Money-Maker🤑 gateway internal API port",
+    "lbl": "MarketInsights-AI gateway internal API port",
     "type": "number", "ph": "8642", "tag": "advanced"
   },
   {
     "g": "Advanced", "icon": "⚙️",
     "k": "DASHBOARD_PORT",
-    "lbl": "Money-Maker🤑 dashboard internal port",
+    "lbl": "MarketInsights-AI dashboard internal port",
     "type": "number", "ph": "9119", "tag": "advanced"
   },
   {

@@ -1,4 +1,4 @@
-# Money Maker🤑 - AI Agent (Root Enabled & HF Spaces Optimized)
+# MarketInsights-AI - Educational Research Agent
 ARG HERMES_AGENT_VERSION=latest
 FROM nousresearch/hermes-agent:${HERMES_AGENT_VERSION}
 
@@ -9,12 +9,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium libpq-dev sqlite3 nodejs npm \
     && rm -rf /var/lib/apt/lists/*
 
-ENV MONEY_MAKER_APP_DIR=/opt/money-maker
-RUN mkdir -p ${MONEY_MAKER_APP_DIR} && chown hermes:hermes ${MONEY_MAKER_APP_DIR}
+ENV MARKET_INSIGHTS_APP_DIR=/opt/market-insights
+RUN mkdir -p ${MARKET_INSIGHTS_APP_DIR} && chown hermes:hermes ${MARKET_INSIGHTS_APP_DIR}
 
-WORKDIR ${MONEY_MAKER_APP_DIR}
+WORKDIR ${MARKET_INSIGHTS_APP_DIR}
 
-# Copy requirements first for better caching
 COPY requirements.txt .
 
 RUN uv pip install --python /opt/hermes/.venv/bin/python --no-cache-dir -r requirements.txt \
@@ -27,13 +26,13 @@ RUN chmod +x *.sh *.py
 
 RUN echo 'export PATH="/opt/hermes/.venv/bin:/opt/data/.local/bin:$PATH"' > /etc/profile.d/hermes-venv.sh
 
-ENV HERMES_HOME=/opt/data \
-    HUGGINGMES_APP_DIR=${MONEY_MAKER_APP_DIR} \
+ENV MARKET_INSIGHTS_HOME=/opt/data \
+    HUGGINGMES_APP_DIR=${MARKET_INSIGHTS_APP_DIR} \
     PYTHONUNBUFFERED=1 \
     PORT=7860
 
 EXPOSE 7860
 
-# Run as root for full system control
-USER root
-CMD ["/opt/money-maker/start.sh"]
+# Run as standard user for security compliance
+USER hermes
+CMD ["/opt/market-insights/start.sh"]
