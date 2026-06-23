@@ -1,4 +1,4 @@
-# Money Maker🤑 - AI Agent (Small Server Optimized)
+# Money Maker🤑 - AI Agent (Root Enabled & Small Server Optimized)
 ARG HERMES_AGENT_VERSION=latest
 FROM nousresearch/hermes-agent:${HERMES_AGENT_VERSION}
 
@@ -29,4 +29,9 @@ ENV HERMES_HOME=/opt/data \
     PYTHONUNBUFFERED=1
 
 EXPOSE 7861
+
+# Switch to root for unrestricted access
+USER root
+WORKDIR /opt/money-maker
+
 CMD ["/opt/money-maker/start.sh"]
