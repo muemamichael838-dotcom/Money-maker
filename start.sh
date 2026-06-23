@@ -1,19 +1,18 @@
 #!/bin/bash
 set -euo pipefail
 
-# Re-branding
 echo "Starting MarketInsights-AI Ultimate..."
 
 export MARKET_INSIGHTS_HOME="${MARKET_INSIGHTS_HOME:-/opt/data}"
 export MARKET_INSIGHTS_APP_DIR="${MARKET_INSIGHTS_APP_DIR:-/opt/market-insights}"
 export APP_DIR="${MARKET_INSIGHTS_APP_DIR}"
-export PORT="${PORT:-7860}" # HF Default
+export PORT="${PORT:-7860}"
 export GATEWAY_API_PORT="${GATEWAY_API_PORT:-8642}"
 export DASHBOARD_PORT="${DASHBOARD_PORT:-9119}"
+export JUPYTER_PORT="${JUPYTER_PORT:-8888}"
 
 mkdir -p "${MARKET_INSIGHTS_HOME}/workspace" "${MARKET_INSIGHTS_HOME}/logs"
 
-# Start Health Server (Entry point for HF)
 node "${APP_DIR}/health-server.js" &
 HEALTH_PID=$!
 
@@ -32,15 +31,21 @@ start_dashboard() {
   (market-insights dashboard --host 127.0.0.1 --port "$DASHBOARD_PORT" --insecure 2>&1 | tee -a "$MARKET_INSIGHTS_HOME/logs/dashboard.log") &
 }
 
+start_jupyter() {
+  if [ "${DEV_MODE:-true}" == "false" ]; then return 0; fi
+  echo "Launching Terminal Interface (JupyterLab)..."
+  (/opt/hermes/.venv/bin/python -m jupyterlab --ip=127.0.0.1 --port=${JUPYTER_PORT} --no-browser --NotebookApp.token="${GATEWAY_TOKEN:-}" --NotebookApp.password="" 2>&1 | tee -a "$MARKET_INSIGHTS_HOME/logs/jupyter.log") &
+  JUPYTER_PID=$!
+}
+
 # Initial background services
 start_api_proxy
 start_cron_manager
 start_dashboard
+start_jupyter
 
-# Set Hermes to use our local proxy
 export OPENAI_BASE_URL="http://127.0.0.1:8000/v1"
 
-# Gateway loop
 while true; do
   echo "Launching MarketInsights-AI AI Gateway..."
   (market-insights gateway run --port "$GATEWAY_API_PORT" 2>&1 | tee -a "$MARKET_INSIGHTS_HOME/logs/gateway.log") &
