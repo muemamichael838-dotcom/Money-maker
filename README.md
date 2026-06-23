@@ -1,3 +1,12 @@
+---
+title: Money Maker🤑
+emoji: 🤑
+colorFrom: green
+colorTo: emerald
+sdk: docker
+pinned: false
+---
+
 # Money Maker🤑
 
 **Advanced Autonomous AI Agent for Financial Intelligence, Sports Betting, and Crypto Trading**
@@ -9,7 +18,7 @@ Money Maker🤑 is a production-ready, autonomous AI agent designed to dominate 
 - **Seamless Small Server Execution**: Optimized for low-resource environments with local SQLite fallback for memory.
 - **Self-Saving Memory**: Saves all its own memory and logs to a local Postgres/SQLite database without external dependencies (while still supporting optional Supabase sync).
 - **Multi-Layer API Key System**: Every integrated service (Groq, HF, Google, Odds API, Reddit) uses a comma-separated multi-key rotation system for zero-downtime.
-- **In-Built Text Splitting**: Intelligent recursive text splitter prevents LLM context limit errors during heavy data processing.
+- **In-Built Text Splitting**: Intelligent recursive text splitter prevents LLM token limit errors during heavy data processing.
 - **Reddit Sentiment Analysis**: Real-time market sentiment gathering from Reddit with automated multi-key rotation.
 
 ## 🏛 Production-Ready Architecture
