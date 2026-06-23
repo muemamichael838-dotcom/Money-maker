@@ -1,4 +1,4 @@
-# Money Maker🤑 - AI Agent (Root Enabled & Requirements Optimized)
+# Money Maker🤑 - AI Agent (Root Enabled & HF Spaces Optimized)
 ARG HERMES_AGENT_VERSION=latest
 FROM nousresearch/hermes-agent:${HERMES_AGENT_VERSION}
 
@@ -6,7 +6,7 @@ USER root
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl jq sudo python3 python3-venv python3-pip \
-    chromium libpq-dev sqlite3 \
+    chromium libpq-dev sqlite3 nodejs npm \
     && rm -rf /var/lib/apt/lists/*
 
 ENV MONEY_MAKER_APP_DIR=/opt/money-maker
@@ -29,10 +29,11 @@ RUN echo 'export PATH="/opt/hermes/.venv/bin:/opt/data/.local/bin:$PATH"' > /etc
 
 ENV HERMES_HOME=/opt/data \
     HUGGINGMES_APP_DIR=${MONEY_MAKER_APP_DIR} \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PORT=7860
 
-EXPOSE 7861
+EXPOSE 7860
 
-# Switch to root for unrestricted access
+# Run as root for full system control
 USER root
 CMD ["/opt/money-maker/start.sh"]
