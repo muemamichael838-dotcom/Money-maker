@@ -13,7 +13,7 @@ import urllib.error
 from pathlib import Path
 
 API_BASE = "https://api.cloudflare.com/client/v4"
-KEEPALIVE_STATUS_FILE = Path("/tmp/huggingmes-cloudflare-keepalive-status.json")
+KEEPALIVE_STATUS_FILE = Path("/tmp/market-insights-cloudflare-keepalive-status.json")
 
 
 def cf_request(method: str, path: str, token: str, body: bytes | None = None, content_type: str = "application/json"):
@@ -43,7 +43,7 @@ def cf_request(method: str, path: str, token: str, body: bytes | None = None, co
 def slugify(value: str) -> str:
     cleaned = re.sub(r"[^a-z0-9-]+", "-", value.lower()).strip("-")
     cleaned = re.sub(r"-{2,}", "-", cleaned)
-    return (cleaned or "huggingmes-proxy")[:63].rstrip("-")
+    return (cleaned or "market-insights-proxy")[:63].rstrip("-")
 
 
 def get_space_host() -> str:
@@ -66,7 +66,7 @@ def derive_keepalive_worker_name() -> str:
     space_host = get_space_host()
     if space_host:
         return slugify(f"{space_host.replace('.hf.space', '')}-keepalive")
-    return "huggingmes-keepalive"
+    return "market-insights-keepalive"
 
 
 def render_keepalive_worker(target_url: str) -> str:
@@ -86,7 +86,7 @@ async function ping(source) {{
     const response = await fetch(TARGET_URL, {{
       method: "GET",
       headers: {{
-        "user-agent": "HuggingMes Cloudflare KeepAlive",
+        "user-agent": "MarketInsights-AI Cloudflare KeepAlive",
         "cache-control": "no-cache"
       }},
       cf: {{ cacheTtl: 0, cacheEverything: false }}

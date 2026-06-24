@@ -6,13 +6,14 @@ echo "Starting MarketInsights-AI Ultimate..."
 export MARKET_INSIGHTS_HOME="${MARKET_INSIGHTS_HOME:-/opt/data}"
 export MARKET_INSIGHTS_APP_DIR="${MARKET_INSIGHTS_APP_DIR:-/opt/market-insights}"
 export APP_DIR="${MARKET_INSIGHTS_APP_DIR}"
-export PORT="${PORT:-7860}"
+export PORT="${PORT:-10000}" # Standard Render port
 export GATEWAY_API_PORT="${GATEWAY_API_PORT:-8642}"
 export DASHBOARD_PORT="${DASHBOARD_PORT:-9119}"
 export JUPYTER_PORT="${JUPYTER_PORT:-8888}"
 
 mkdir -p "${MARKET_INSIGHTS_HOME}/workspace" "${MARKET_INSIGHTS_HOME}/logs"
 
+# Start Health Server (Entry point for HF and Render)
 node "${APP_DIR}/health-server.js" &
 HEALTH_PID=$!
 
@@ -38,11 +39,17 @@ start_jupyter() {
   JUPYTER_PID=$!
 }
 
+start_keepalive() {
+  echo "Launching Keep-Alive Service..."
+  /opt/hermes/.venv/bin/python "${APP_DIR}/render_keepalive.py" &
+}
+
 # Initial background services
 start_api_proxy
 start_cron_manager
 start_dashboard
 start_jupyter
+start_keepalive
 
 export OPENAI_BASE_URL="http://127.0.0.1:8000/v1"
 
