@@ -6,7 +6,7 @@ const fs = require("fs");
 const net = require("net");
 const crypto = require("crypto");
 
-const PORT = Number(process.env.PORT || 7861);
+const PORT = Number(process.env.PORT || 10000);
 const GATEWAY_PORT = Number(process.env.API_SERVER_PORT || 8642);
 const DASHBOARD_PORT = Number(process.env.DASHBOARD_PORT || 9119);
 const TELEGRAM_WEBHOOK_PORT = Number(process.env.TELEGRAM_WEBHOOK_PORT || 8765);

@@ -29,7 +29,7 @@ RUN echo 'export PATH="/opt/hermes/.venv/bin:/opt/data/.local/bin:$PATH"' > /etc
 ENV MARKET_INSIGHTS_HOME=/opt/data \
     HUGGINGMES_APP_DIR=${MARKET_INSIGHTS_APP_DIR} \
     PYTHONUNBUFFERED=1 \
-    PORT=7860
+    PORT=10000
 
 EXPOSE 7860
 
