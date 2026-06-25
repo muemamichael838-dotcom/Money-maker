@@ -1,13 +1,12 @@
-# Deployment Fix: Money Maker 🤑 (v1.9) - Survival & Self-Healing
+# Deployment Fix: Money Maker 🤑 (v2.0) - Host Header Resolution
 
 ## Problem
-The dashboard remained unreachable because the `hermes` binary or package was missing or incorrectly located in the container environment, causing silent startup failures.
+The dashboard engine (Tornado/FastAPI) was rejecting requests with `{"detail":"Invalid Host header"}` because the external hostname (e.g., `money-maker.onrender.com`) did not match the internal binding (`127.0.0.1`).
 
 ## Solution
-- **Emergency Self-Healing**: Added a phase to `start.sh` that checks if the `hermes` Python module is importable. If not, it automatically runs `pip install hermes-agent` at runtime.
-- **Enhanced Transparency**: Upgraded the health server UI to show the last 15 lines of `dashboard.log`. This transforms the "Engine Warming Up" screen from a static spinner into a live diagnostic console.
-- **Massive Redundancy**: The startup script now attempts 5 different ways to invoke the engine (binary paths, module names, and aliases).
-- **Styling & Encoding**: Ensured the "Money Maker 🤑" title uses UTF-8 and a professional dark-mode design that works on both desktop and mobile.
+- **Host Header Masking**: Updated `health-server.js` to rewrite the `Host` and `Origin` headers to `127.0.0.1:9119` before sending the request to the dashboard. This makes the dashboard believe it is being accessed directly from the local machine.
+- **Proxy Transparency**: Added `X-Forwarded-Host` and `X-Forwarded-Proto` headers to preserve the original client information for logging and security within the agent.
+- **Security Wildcards**: Set `ALLOWED_HOSTS=*` and `CSRF_TRUSTED_ORIGINS=*` in `start.sh` to explicitly tell the engine to trust the proxied traffic.
 
-## Learning
-In diverse Docker environments (Render/HF), path-based execution is fragile. Using `python -m <module>` combined with runtime dependency checks is the most resilient way to ensure a service starts.
+## UX Improvement
+The dashboard now loads correctly after login without security-related 400 errors.
