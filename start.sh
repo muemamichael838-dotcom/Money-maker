@@ -1,34 +1,24 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "Starting Money Maker Agent 🤑..."
+echo "Starting Money Maker Agent 🤑 (v1.1)..."
 
-# Use current dir if /opt/data is not writable (for local testing)
-if [ -w "/opt/data" ]; then
-    export MONEY_MAKER_HOME="/opt/data"
-else
-    export MONEY_MAKER_HOME="${HOME}/money_maker_data"
-fi
+export MONEY_MAKER_HOME="${MONEY_MAKER_HOME:-/opt/data}"
+export APP_DIR="/opt/market-insights"
 
-export APP_DIR="/app"
 export PORT="${PORT:-10000}"
 export GATEWAY_API_PORT="${GATEWAY_API_PORT:-8642}"
 export DASHBOARD_PORT="${DASHBOARD_PORT:-9119}"
 export JUPYTER_PORT="${JUPYTER_PORT:-8888}"
 
-# Detection of Python environment
-if [ -f "/opt/hermes/.venv/bin/python" ]; then
-    PYTHON_BIN="/opt/hermes/.venv/bin/python"
-    HERMES_BIN="/usr/local/bin/market-insights"
-else
+PYTHON_BIN="/opt/hermes/.venv/bin/python"
+if [ ! -f "$PYTHON_BIN" ]; then
     PYTHON_BIN=$(which python3)
-    HERMES_BIN=$(which hermes || echo "market-insights")
 fi
 
 mkdir -p "${MONEY_MAKER_HOME}/workspace" "${MONEY_MAKER_HOME}/logs" "${MONEY_MAKER_HOME}/.local/bin"
 
-# Rebrand health server output and redirect logs
-echo "Launching Primary Health & Proxy Server (Port $PORT)..."
+echo "Launching Primary Health Server on 0.0.0.0:$PORT..."
 node "${APP_DIR}/health-server.js" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/health-server.log" &
 HEALTH_PID=$!
 
@@ -44,13 +34,13 @@ start_cron_manager() {
 
 start_dashboard() {
   echo "Launching Money Maker Pro Dashboard..."
-  (market-insights dashboard --host 0.0.0.0 --port "$DASHBOARD_PORT" --insecure 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/dashboard.log") &
+  /usr/local/bin/market-insights dashboard --host 127.0.0.1 --port "$DASHBOARD_PORT" --insecure 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/dashboard.log" &
 }
 
 start_jupyter() {
   if [ "${DEV_MODE:-true}" == "false" ]; then return 0; fi
   echo "Launching Root Terminal (JupyterLab)..."
-  ($PYTHON_BIN -m jupyterlab --ip=0.0.0.0 --port=${JUPYTER_PORT} --no-browser --NotebookApp.token="${GATEWAY_TOKEN:-}" --NotebookApp.password="" --allow-root 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/jupyter.log") &
+  ($PYTHON_BIN -m jupyterlab --ip=127.0.0.1 --port=${JUPYTER_PORT} --no-browser --NotebookApp.token="${GATEWAY_TOKEN:-}" --NotebookApp.password="" --allow-root 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/jupyter.log") &
 }
 
 start_keepalive() {
@@ -58,7 +48,6 @@ start_keepalive() {
   $PYTHON_BIN "${APP_DIR}/render_keepalive.py" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/keepalive.log" &
 }
 
-# Background services
 start_api_proxy
 start_cron_manager
 start_dashboard
@@ -70,10 +59,6 @@ export OPENAI_BASE_URL="http://127.0.0.1:8000/v1"
 while true; do
   echo "Launching Money Maker AI Gateway..."
   export API_SERVER_PORT="$GATEWAY_API_PORT"
-  (market-insights gateway run 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/gateway.log") &
-  GATEWAY_PID=$!
-
-  wait "$GATEWAY_PID" || echo "Gateway exited. Retrying..."
-
+  /usr/local/bin/market-insights gateway run 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/gateway.log" || echo "Gateway exited."
   sleep 5
 done
