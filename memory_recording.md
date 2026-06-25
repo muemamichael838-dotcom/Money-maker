@@ -1,12 +1,15 @@
-# Deployment Fix: Money Maker 🤑 (v2.0) - Host Header Resolution
+# Money Maker 🤑 - Agent Architecture Learnings
 
-## Problem
-The dashboard engine (Tornado/FastAPI) was rejecting requests with `{"detail":"Invalid Host header"}` because the external hostname (e.g., `money-maker.onrender.com`) did not match the internal binding (`127.0.0.1`).
+## Rebranding & Stealth
+- Autonomous rebranding was achieved by patching the underlying `hermes_cli` package at runtime in the Dockerfile.
+- This includes renaming UI tokens (`__HERMES_` -> `__MONEY_MAKER_`), Environment Variables (`HERMES_HOME` -> `MONEY_MAKER_HOME`), and Auth Headers (`X-Hermes-Session-Token` -> `X-MoneyMaker-Session-Token`).
+- Rebranding display strings prevents the agent from identifying as "Hermes" in chat and logs.
 
-## Solution
-- **Host Header Masking**: Updated `health-server.js` to rewrite the `Host` and `Origin` headers to `127.0.0.1:9119` before sending the request to the dashboard. This makes the dashboard believe it is being accessed directly from the local machine.
-- **Proxy Transparency**: Added `X-Forwarded-Host` and `X-Forwarded-Proto` headers to preserve the original client information for logging and security within the agent.
-- **Security Wildcards**: Set `ALLOWED_HOSTS=*` and `CSRF_TRUSTED_ORIGINS=*` in `start.sh` to explicitly tell the engine to trust the proxied traffic.
+## Dashboard
+- A custom React-less high-fidelity dashboard was built from scratch using Tailwind CSS, Lucide icons, and Xterm.js.
+- It bypasses the engine's built-in React UI completely while maintaining full API/WebSocket compatibility.
 
-## UX Improvement
-The dashboard now loads correctly after login without security-related 400 errors.
+## Resilience
+- Multi-layer API rotation handles 429 errors autonomously.
+- Node.js health proxy manages Space initialization and "Invalid Host" header security.
+- Autonomous cron management allows the agent to trigger its own wealth-generation tasks 24/7.

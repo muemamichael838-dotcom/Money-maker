@@ -3,7 +3,7 @@ import subprocess
 def execute_command(command):
     """Executes a shell command as the current user."""
     try:
-        # Running as 'hermes' user for security compliance
+        # Running as 'moneymaker' user for security compliance
         result = subprocess.run(
             ["bash", "-c", command],
             capture_output=True,

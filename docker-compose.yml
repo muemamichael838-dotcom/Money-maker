@@ -3,7 +3,7 @@ services:
     build:
       context: .
       args:
-        HERMES_AGENT_VERSION: ${HERMES_AGENT_VERSION:-latest}
+        AGENT_VERSION: ${AGENT_VERSION:-latest}
     image: huggingmes:local
     ports:
       - "7861:7861"

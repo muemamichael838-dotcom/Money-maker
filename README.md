@@ -1,6 +1,6 @@
 # 🤑 Money Maker Agent
 
-An autonomous AI agent designed for market insights, betting analysis, and automated money-making strategies. Based on the Hermes Agent architecture, optimized for 24/7 operation on Hugging Face Docker Spaces.
+An autonomous AI agent designed for market insights, betting analysis, and automated money-making strategies. Based on the Money Maker 🤑 architecture, optimized for 24/7 operation on Hugging Face Docker Spaces.
 
 ## 🚀 Features
 

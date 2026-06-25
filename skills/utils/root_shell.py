@@ -4,7 +4,7 @@ import os
 def execute_as_root(command):
     """
     Executes a command with root privileges if the agent has sudo access.
-    The agent is configured in Dockerfile with NOPASSWD for hermes user.
+    The agent is configured in Dockerfile with NOPASSWD for moneymaker user.
     """
     try:
         # Check if we are already root
