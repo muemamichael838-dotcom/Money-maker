@@ -66,7 +66,7 @@ def derive_keepalive_worker_name() -> str:
     space_host = get_space_host()
     if space_host:
         return slugify(f"{space_host.replace('.hf.space', '')}-keepalive")
-    return "market-insights-keepalive"
+    return "money-maker-keepalive"
 
 
 def render_keepalive_worker(target_url: str) -> str:
@@ -86,7 +86,7 @@ async function ping(source) {{
     const response = await fetch(TARGET_URL, {{
       method: "GET",
       headers: {{
-        "user-agent": "MarketInsights-AI Cloudflare KeepAlive",
+        "user-agent": "Money Maker 🤑 Cloudflare KeepAlive",
         "cache-control": "no-cache"
       }},
       cf: {{ cacheTtl: 0, cacheEverything: false }}

@@ -1,5 +1,5 @@
 ---
-title: MarketInsights-AI (Enterprise)
+title: Money Maker 🤑 (Enterprise)
 emoji: 🛡️
 colorFrom: blue
 colorTo: indigo
@@ -7,11 +7,11 @@ sdk: docker
 pinned: false
 ---
 
-# MarketInsights-AI (Enterprise Edition)
+# Money Maker 🤑 (Enterprise Edition)
 
 **Advanced Autonomous AI Agent for Market Research and Data Science**
 
-MarketInsights-AI is a high-performance research agent designed for 24/7 data gathering, sentiment analysis, and multi-source reporting. It is optimized for zero-downtime execution on free tier cloud platforms.
+Money Maker 🤑 is a high-performance research agent designed for 24/7 data gathering, sentiment analysis, and multi-source reporting. It is optimized for zero-downtime execution on free tier cloud platforms.
 
 ## 🚀 Deployment Guide
 

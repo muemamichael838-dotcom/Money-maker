@@ -1,82 +1,78 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "Starting MarketInsights-AI Ultimate..."
+echo "Starting Money Maker Agent 🤑..."
 
-export MARKET_INSIGHTS_HOME="${MARKET_INSIGHTS_HOME:-/opt/data}"
-export MARKET_INSIGHTS_APP_DIR="${MARKET_INSIGHTS_APP_DIR:-/opt/market-insights}"
-export APP_DIR="${MARKET_INSIGHTS_APP_DIR}"
+# Use current dir if /opt/data is not writable (for local testing)
+if [ -w "/opt/data" ]; then
+    export MONEY_MAKER_HOME="/opt/data"
+else
+    export MONEY_MAKER_HOME="${HOME}/money_maker_data"
+fi
+
+export APP_DIR="/app"
 export PORT="${PORT:-10000}"
 export GATEWAY_API_PORT="${GATEWAY_API_PORT:-8642}"
 export DASHBOARD_PORT="${DASHBOARD_PORT:-9119}"
 export JUPYTER_PORT="${JUPYTER_PORT:-8888}"
 
-# Configure Hermes Gateway Port via environment variable
-export API_SERVER_PORT="$GATEWAY_API_PORT"
+# Detection of Python environment
+if [ -f "/opt/hermes/.venv/bin/python" ]; then
+    PYTHON_BIN="/opt/hermes/.venv/bin/python"
+    HERMES_BIN="/usr/local/bin/market-insights"
+else
+    PYTHON_BIN=$(which python3)
+    HERMES_BIN=$(which hermes || echo "market-insights")
+fi
 
-mkdir -p "${MARKET_INSIGHTS_HOME}/workspace" "${MARKET_INSIGHTS_HOME}/logs" "${MARKET_INSIGHTS_HOME}/.local/bin"
+mkdir -p "${MONEY_MAKER_HOME}/workspace" "${MONEY_MAKER_HOME}/logs" "${MONEY_MAKER_HOME}/.local/bin"
 
+# Rebrand health server output
 node "${APP_DIR}/health-server.js" &
 HEALTH_PID=$!
 
 start_api_proxy() {
   echo "Launching Multi-Layer API Proxy (Port 8000)..."
-  /opt/hermes/.venv/bin/python "${APP_DIR}/api_proxy.py" &
+  $PYTHON_BIN "${APP_DIR}/api_proxy.py" &
 }
 
 start_cron_manager() {
   echo "Launching Autonomous Cron Manager..."
-  /opt/hermes/.venv/bin/python "${APP_DIR}/cron_manager.py" &
+  $PYTHON_BIN "${APP_DIR}/cron_manager.py" &
 }
 
 start_dashboard() {
-  echo "Launching Pro Dashboard..."
-  (market-insights dashboard --host 127.0.0.1 --port "$DASHBOARD_PORT" --insecure 2>&1 | tee -a "$MARKET_INSIGHTS_HOME/logs/dashboard.log") &
+  echo "Launching Money Maker Pro Dashboard..."
+  (market-insights dashboard --host 0.0.0.0 --port "$DASHBOARD_PORT" --insecure 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/dashboard.log") &
 }
 
 start_jupyter() {
   if [ "${DEV_MODE:-true}" == "false" ]; then return 0; fi
-  echo "Launching Terminal Interface (JupyterLab)..."
-  (/opt/hermes/.venv/bin/python -m jupyterlab --ip=127.0.0.1 --port=${JUPYTER_PORT} --no-browser --NotebookApp.token="${GATEWAY_TOKEN:-}" --NotebookApp.password="" 2>&1 | tee -a "$MARKET_INSIGHTS_HOME/logs/jupyter.log") &
-  JUPYTER_PID=$!
+  echo "Launching Root Terminal (JupyterLab)..."
+  ($PYTHON_BIN -m jupyterlab --ip=0.0.0.0 --port=${JUPYTER_PORT} --no-browser --NotebookApp.token="${GATEWAY_TOKEN:-}" --NotebookApp.password="" --allow-root 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/jupyter.log") &
 }
 
 start_keepalive() {
-  echo "Launching Keep-Alive Service..."
-  /opt/hermes/.venv/bin/python "${APP_DIR}/render_keepalive.py" &
+  echo "Launching 24/7 Keep-Alive Service..."
+  $PYTHON_BIN "${APP_DIR}/render_keepalive.py" &
 }
 
-start_background_sync_once() {
-  if [ -z "${HF_TOKEN:-}" ]; then
-    echo "Warning: HF_TOKEN not set. Persistence sync disabled."
-    return 0
-  fi
-  echo "Launching HF Dataset Persistence Sync..."
-  python3 -u "${APP_DIR}/hermes-sync.py" loop &
-}
-
-# Initial background services
+# Background services
 start_api_proxy
 start_cron_manager
 start_dashboard
 start_jupyter
 start_keepalive
-start_background_sync_once
 
 export OPENAI_BASE_URL="http://127.0.0.1:8000/v1"
 
 while true; do
-  echo "Launching MarketInsights-AI AI Gateway..."
-  # Hermes reads API_SERVER_PORT from env, doesn't accept --port flag here
-  (market-insights gateway run 2>&1 | tee -a "$MARKET_INSIGHTS_HOME/logs/gateway.log") &
+  echo "Launching Money Maker AI Gateway..."
+  export API_SERVER_PORT="$GATEWAY_API_PORT"
+  (market-insights gateway run 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/gateway.log") &
   GATEWAY_PID=$!
 
-  wait "$GATEWAY_PID" || echo "Gateway exited."
-
-  if [ -n "${HF_TOKEN:-}" ]; then
-    python3 "${APP_DIR}/hermes-sync.py" sync-once || true
-    /opt/hermes/.venv/bin/python "${APP_DIR}/sync_helper.py" || true
-  fi
+  wait "$GATEWAY_PID" || echo "Gateway exited. Retrying with another API key if configured..."
 
   sleep 5
 done

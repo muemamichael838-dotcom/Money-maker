@@ -72,7 +72,7 @@ async function detectSpacePrivacy() {
     path: `/api/spaces/${SPACE_ID}`,
     method: "GET",
     headers: Object.assign(
-      { "User-Agent": "MarketInsights-AI/health-server" },
+      { "User-Agent": "Money Maker 🤑/health-server" },
       token ? { Authorization: `Bearer ${token}` } : {}
     ),
   };
@@ -222,7 +222,7 @@ function renderLoginPage(nextPath, errorMessage = "") {
   const safeNext = sanitizeNext(nextPath);
   return `<!doctype html><html lang="en"><head>
   <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MarketInsights-AI</title>
+  <title>Money Maker 🤑</title>
   <style>
     :root{color-scheme:dark;--bg:#08080f;--panel:#12111b;--line:#26243a;--text:#f6f4ff;--muted:#7f7a9e;--bad:#fb7185}
     *{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px}
@@ -238,7 +238,7 @@ function renderLoginPage(nextPath, errorMessage = "") {
     code{background:#232234;border:1px solid #34324c;border-radius:5px;padding:2px 6px;font-size:.88em}
   </style></head><body>
   <div class="card">
-    <h1>🪽 MarketInsights-AI</h1>
+    <h1>🪽 Money Maker 🤑</h1>
     <p class="sub">Enter your <code>GATEWAY_TOKEN</code> to continue</p>
     <form method="post" action="${LOGIN_PATH}">
       <input type="hidden" name="next" value="${escapeHtml(safeNext)}" />
@@ -456,7 +456,7 @@ function renderPrivateRedirect(targetUrl) {
   return `<!doctype html><html lang="en"><head>
   <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
   <meta http-equiv="refresh" content="3;url=${safeUrl}"/>
-  <title>MarketInsights-AI — Private Space</title>
+  <title>Money Maker 🤑 — Private Space</title>
   <style>
     :root{color-scheme:dark}
     body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
@@ -618,7 +618,7 @@ function renderDashboard(data) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MarketInsights-AI</title>
+  <title>Money Maker 🤑</title>
   <style>
     :root { color-scheme: dark; --bg:#08080f; --panel:#12111b; --panel2:#151421; --line:#26243a; --text:#f6f4ff; --muted:#7f7a9e; --soft:#b8b3d7; --good:#22c55e; --warn:#f5c542; --bad:#fb7185; --accent:#6557df; --accent2:#7c6cf2; }
     * { box-sizing:border-box; }
@@ -668,15 +668,15 @@ function renderDashboard(data) {
 <body>
   <main>
     <header>
-      <h1>MarketInsights-AI</h1>
-      <div class="subtitle">Self-hosted - MarketInsights-AI</div>
+      <h1>Money Maker 🤑</h1>
+      <div class="subtitle">Self-hosted - Money Maker 🤑</div>
     </header>
     <div class="hero-buttons">
-      <a class="hero-action" data-space-link="app" href="${APP_BASE}/">Open MarketInsights-AI →</a>
+      <a class="hero-action" data-space-link="app" href="${APP_BASE}/">Open Money Maker 🤑 →</a>
       <a class="hero-action secondary" data-space-link="terminal" href="/terminal/">💻 Open Terminal →</a>
       <a class="hero-action secondary" data-space-link="env-builder" href="/env-builder">⚙️ ENV Builder →</a>
     </div>
-    ${syncStatus === "disabled" ? `<div class="warn-banner">⚠️ <strong>Backup is disabled.</strong> HF Spaces storage is ephemeral — all MarketInsights-AI data (chats, config, memory) will be lost on every Space restart. Set <code>HF_TOKEN</code> in Space secrets to enable automatic backup.</div>` : ""}
+    ${syncStatus === "disabled" ? `<div class="warn-banner">⚠️ <strong>Backup is disabled.</strong> HF Spaces storage is ephemeral — all Money Maker 🤑 data (chats, config, memory) will be lost on every Space restart. Set <code>HF_TOKEN</code> in Space secrets to enable automatic backup.</div>` : ""}
     <section class="overview">
       ${tiles}
     </section>
@@ -980,7 +980,7 @@ const server = http.createServer(async (req, res) => {
   res.end("Not found");
 });
 
-// ── WebSocket upgrade (JupyterLab terminals + MarketInsights-AI dashboard PTY/events) ──
+// ── WebSocket upgrade (JupyterLab terminals + Money Maker 🤑 dashboard PTY/events) ──
 server.on("upgrade", (req, socket, head) => {
   const { pathname } = new URL(req.url, "http://localhost");
   const isJupyter = pathname === TERMINAL_BASE || pathname.startsWith(`${TERMINAL_BASE}/`);
@@ -1024,5 +1024,5 @@ server.timeout = 0;
 server.keepAliveTimeout = 65000;
 console.log(`[health-server] Attempting to bind to 0.0.0.0:${PORT}...`);
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`MarketInsights-AI dashboard listening on 0.0.0.0:${PORT}`);
+  console.log(`Money Maker 🤑 dashboard listening on 0.0.0.0:${PORT}`);
 });
