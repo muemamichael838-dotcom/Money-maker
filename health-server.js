@@ -860,7 +860,7 @@ const server = http.createServer(async (req, res) => {
     }
     const data = await statusPayload();
     res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-    res.end(renderDashboard(data));
+    redirect(res, `${APP_BASE}/`);
     return;
   }
 
