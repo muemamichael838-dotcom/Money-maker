@@ -27,18 +27,19 @@ fi
 
 mkdir -p "${MONEY_MAKER_HOME}/workspace" "${MONEY_MAKER_HOME}/logs" "${MONEY_MAKER_HOME}/.local/bin"
 
-# Rebrand health server output
-node "${APP_DIR}/health-server.js" &
+# Rebrand health server output and redirect logs
+echo "Launching Primary Health & Proxy Server (Port $PORT)..."
+node "${APP_DIR}/health-server.js" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/health-server.log" &
 HEALTH_PID=$!
 
 start_api_proxy() {
   echo "Launching Multi-Layer API Proxy (Port 8000)..."
-  $PYTHON_BIN "${APP_DIR}/api_proxy.py" &
+  $PYTHON_BIN "${APP_DIR}/api_proxy.py" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/api_proxy.log" &
 }
 
 start_cron_manager() {
   echo "Launching Autonomous Cron Manager..."
-  $PYTHON_BIN "${APP_DIR}/cron_manager.py" &
+  $PYTHON_BIN "${APP_DIR}/cron_manager.py" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/cron_manager.log" &
 }
 
 start_dashboard() {
@@ -54,7 +55,7 @@ start_jupyter() {
 
 start_keepalive() {
   echo "Launching 24/7 Keep-Alive Service..."
-  $PYTHON_BIN "${APP_DIR}/render_keepalive.py" &
+  $PYTHON_BIN "${APP_DIR}/render_keepalive.py" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/keepalive.log" &
 }
 
 # Background services
@@ -72,7 +73,7 @@ while true; do
   (market-insights gateway run 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/gateway.log") &
   GATEWAY_PID=$!
 
-  wait "$GATEWAY_PID" || echo "Gateway exited. Retrying with another API key if configured..."
+  wait "$GATEWAY_PID" || echo "Gateway exited. Retrying..."
 
   sleep 5
 done
