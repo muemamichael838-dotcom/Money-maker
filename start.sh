@@ -11,9 +11,11 @@ export GATEWAY_API_PORT="${GATEWAY_API_PORT:-8642}"
 export DASHBOARD_PORT="${DASHBOARD_PORT:-9119}"
 export JUPYTER_PORT="${JUPYTER_PORT:-8888}"
 
+# Configure Hermes Gateway Port via environment variable
+export API_SERVER_PORT="$GATEWAY_API_PORT"
+
 mkdir -p "${MARKET_INSIGHTS_HOME}/workspace" "${MARKET_INSIGHTS_HOME}/logs" "${MARKET_INSIGHTS_HOME}/.local/bin"
 
-# Start Health Server
 node "${APP_DIR}/health-server.js" &
 HEALTH_PID=$!
 
@@ -65,12 +67,12 @@ export OPENAI_BASE_URL="http://127.0.0.1:8000/v1"
 
 while true; do
   echo "Launching MarketInsights-AI AI Gateway..."
-  (market-insights gateway run --port "$GATEWAY_API_PORT" 2>&1 | tee -a "$MARKET_INSIGHTS_HOME/logs/gateway.log") &
+  # Hermes reads API_SERVER_PORT from env, doesn't accept --port flag here
+  (market-insights gateway run 2>&1 | tee -a "$MARKET_INSIGHTS_HOME/logs/gateway.log") &
   GATEWAY_PID=$!
 
   wait "$GATEWAY_PID" || echo "Gateway exited."
 
-  # Final sync before possible restart/shutdown
   if [ -n "${HF_TOKEN:-}" ]; then
     python3 "${APP_DIR}/hermes-sync.py" sync-once || true
     /opt/hermes/.venv/bin/python "${APP_DIR}/sync_helper.py" || true
