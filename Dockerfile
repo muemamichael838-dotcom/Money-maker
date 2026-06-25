@@ -27,13 +27,13 @@ RUN chmod +x *.sh *.py
 
 RUN echo 'export PATH="/opt/hermes/.venv/bin:/opt/data/.local/bin:$PATH"' > /etc/profile.d/hermes-venv.sh
 
-ENV MARKET_INSIGHTS_HOME=/opt/data \
+ENV HERMES_HOME=/opt/data \
     HUGGINGMES_APP_DIR=${MARKET_INSIGHTS_APP_DIR} \
     PYTHONUNBUFFERED=1 \
     PORT=10000
 
 EXPOSE 10000
 
-# Run as standard user for security compliance
-USER hermes
+# Must remain root for s6-overlay to initialize and manage /run permissions
+USER root
 CMD ["/opt/market-insights/start.sh"]
