@@ -1,12 +1,13 @@
-# Deployment Fix: Money Maker 🤑 (v1.4) - Deep Diagnostics
+# Deployment Fix: Money Maker 🤑 (v1.9) - Survival & Self-Healing
 
 ## Problem
-The dashboard remained unreachable (`ECONNREFUSED`) despite multiple startup fallback attempts. The root cause was invisible to the user.
+The dashboard remained unreachable because the `hermes` binary or package was missing or incorrectly located in the container environment, causing silent startup failures.
 
 ## Solution
-- **Live Debugging**: The "Engine Warming Up" screen now extracts and displays the last 10 lines of `dashboard.log`. This provides immediate transparency into Python tracebacks or dependency errors.
-- **Aggressive Fallback**: Standardized the use of `0.0.0.0` for all internal service bindings and added `python -m hermes dashboard` as the final fail-safe in the startup chain.
-- **UTF-8 Alignment**: Fixed an encoding bug in the health server that caused the "Money Maker 🤑" title to render as corrupt characters on some mobile browsers.
+- **Emergency Self-Healing**: Added a phase to `start.sh` that checks if the `hermes` Python module is importable. If not, it automatically runs `pip install hermes-agent` at runtime.
+- **Enhanced Transparency**: Upgraded the health server UI to show the last 15 lines of `dashboard.log`. This transforms the "Engine Warming Up" screen from a static spinner into a live diagnostic console.
+- **Massive Redundancy**: The startup script now attempts 5 different ways to invoke the engine (binary paths, module names, and aliases).
+- **Styling & Encoding**: Ensured the "Money Maker 🤑" title uses UTF-8 and a professional dark-mode design that works on both desktop and mobile.
 
-## UX Improvement
-If the engine fails to start, the user will now see the exact Python error on the loading screen, allowing for immediate feedback and faster iteration.
+## Learning
+In diverse Docker environments (Render/HF), path-based execution is fragile. Using `python -m <module>` combined with runtime dependency checks is the most resilient way to ensure a service starts.
