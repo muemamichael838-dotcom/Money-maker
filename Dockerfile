@@ -16,8 +16,12 @@ RUN mkdir -p ${APP_DIR} && chown hermes:hermes ${APP_DIR}
 WORKDIR ${APP_DIR}
 
 # Copy requirements and install
+# We use the existing venv provided by the base image
 COPY requirements.txt .
-RUN /opt/hermes/.venv/bin/python -m pip install --no-cache-dir -r requirements.txt
+RUN set -ex; \
+    PYTHON_EXE="/opt/hermes/.venv/bin/python"; \
+    [ -f "$PYTHON_EXE" ] || PYTHON_EXE="python3"; \
+    $PYTHON_EXE -m pip install --no-cache-dir -v -r requirements.txt
 
 # Setup sudo and aliases
 RUN printf 'hermes ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/hermes \
@@ -28,8 +32,6 @@ RUN printf 'hermes ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/hermes \
 COPY --chown=hermes:hermes . .
 
 # Deep Rebranding Patch - Robust Dynamic Resolution
-# This replaces "Hermes Agent" with "Money Maker 🤑" and "Nous Research" with "Money Maker"
-# inside the installed library files to ensure the rebranding is deep and persistent.
 RUN set -ex; \
     PYTHON_EXE="/opt/hermes/.venv/bin/python"; \
     [ -f "$PYTHON_EXE" ] || PYTHON_EXE="python3"; \
