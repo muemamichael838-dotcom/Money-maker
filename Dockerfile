@@ -4,6 +4,7 @@ FROM nousresearch/hermes-agent:${HERMES_AGENT_VERSION}
 
 USER root
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl jq sudo python3 python3-venv python3-pip \
     chromium libpq-dev sqlite3 nodejs npm \
@@ -14,36 +15,32 @@ RUN mkdir -p ${APP_DIR} && chown hermes:hermes ${APP_DIR}
 
 WORKDIR ${APP_DIR}
 
+# Copy requirements and install
 COPY requirements.txt .
+RUN /opt/hermes/.venv/bin/python -m pip install --no-cache-dir -r requirements.txt
 
-# Install dependencies into the existing Hermes venv
-RUN uv pip install --python /opt/hermes/.venv/bin/python --no-cache-dir -r requirements.txt
-
-# Grant hermes user root privileges (Sudo)
+# Setup sudo and aliases
 RUN printf 'hermes ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/hermes \
     && chmod 0440 /etc/sudoers.d/hermes \
-    && ln -s /opt/hermes/.venv/bin/hermes /usr/local/bin/money-maker
+    && ln -sf /opt/hermes/.venv/bin/hermes /usr/local/bin/money-maker
 
 # Copy application files
 COPY --chown=hermes:hermes . .
 
-# Deep Rebranding Patch
-RUN /opt/hermes/.venv/bin/python -c " \
-import os, re; \
-base_path = '/opt/hermes/.venv/lib/python3.12/site-packages/hermes_cli'; \
-for root, dirs, files in os.walk(base_path): \
-    for f in files: \
-        if f.endswith(('.py', '.js')): \
-            p = os.path.join(root, f); \
-            with open(p, 'r', errors='ignore') as fh: c = fh.read(); \
-            new_c = c.replace('Hermes Agent', 'Money Maker 🤑').replace('Nous Research', 'Money Maker'); \
-            if new_c != c: \
-                with open(p, 'w') as fh: fh.write(new_c) \
-"
+# Deep Rebranding Patch - Robust Dynamic Resolution
+# This replaces "Hermes Agent" with "Money Maker 🤑" and "Nous Research" with "Money Maker"
+# inside the installed library files to ensure the rebranding is deep and persistent.
+RUN set -ex; \
+    PYTHON_EXE="/opt/hermes/.venv/bin/python"; \
+    [ -f "$PYTHON_EXE" ] || PYTHON_EXE="python3"; \
+    PKG_PATH=$($PYTHON_EXE -c "import hermes_cli; print(hermes_cli.__path__[0])"); \
+    echo "Rebranding package at $PKG_PATH"; \
+    find "$PKG_PATH" -type f \( -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" \) -print0 | xargs -0 -r sed -i 's/Hermes Agent/Money Maker 🤑/g'; \
+    find "$PKG_PATH" -type f \( -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" \) -print0 | xargs -0 -r sed -i 's/Nous Research/Money Maker/g'
 
 RUN chmod +x *.sh *.py
 
-# Environment setup
+# Persistence and UI Config
 ENV HERMES_HOME=/opt/data \
     HERMES_WEB_DIST=${APP_DIR}/money-maker-ui \
     PYTHONUNBUFFERED=1 \
@@ -51,6 +48,6 @@ ENV HERMES_HOME=/opt/data \
 
 EXPOSE 7860
 
-# Re-run root for space init
+# Space initialization requires root for some boot operations
 USER root
 CMD ["/app/start.sh"]
