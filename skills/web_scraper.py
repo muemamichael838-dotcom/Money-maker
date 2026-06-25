@@ -15,7 +15,7 @@ def scrape_url(url, use_apify=False):
         return list(client.dataset(run["defaultDatasetId"]).iterate_items())
 
     try:
-        response = requests.get(url, timeout=10, headers={'User-Agent': 'MarketInsights/0.1'})
+        response = requests.get(url, timeout=10, headers={'User-Agent': 'MoneyMaker/0.1'})
         soup = BeautifulSoup(response.content, 'html.parser')
         return {
             "title": soup.title.string if soup.title else "",

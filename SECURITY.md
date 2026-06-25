@@ -1,6 +1,6 @@
 # Security
 
-HuggingMes runs a full agent gateway with tool access. Treat the Space and its secrets like a server.
+Money Maker 🤑 runs a full agent gateway with tool access. Treat the Space and its secrets like a server.
 
 ## Required Hardening
 

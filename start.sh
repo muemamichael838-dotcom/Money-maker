@@ -32,7 +32,7 @@ $PYTHON_BIN "${APP_DIR}/api_proxy.py" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/api_
 echo "Launching Dashboard with wildcard security trusts..."
 {
     echo "Attempting dashboard launch..."
-    /usr/local/bin/market-insights dashboard --host 127.0.0.1 --port 9119 --insecure || \
+    /usr/local/bin/money-maker dashboard --host 127.0.0.1 --port 9119 --insecure || \
     /opt/hermes/.venv/bin/hermes dashboard --host 127.0.0.1 --port 9119 --insecure || \
     $PYTHON_BIN -m hermes dashboard --host 127.0.0.1 --port 9119 --insecure
 } >> "$MONEY_MAKER_HOME/logs/dashboard.log" 2>&1 &
@@ -46,7 +46,7 @@ export API_SERVER_PORT=8642
 export OPENAI_BASE_URL="http://127.0.0.1:8000/v1"
 
 while true; do
-  /usr/local/bin/market-insights gateway run >> "$MONEY_MAKER_HOME/logs/gateway.log" 2>&1 || \
+  /usr/local/bin/money-maker gateway run >> "$MONEY_MAKER_HOME/logs/gateway.log" 2>&1 || \
   $PYTHON_BIN -m hermes gateway run >> "$MONEY_MAKER_HOME/logs/gateway.log" 2>&1 || \
   echo "Gateway exited."
   sleep 20

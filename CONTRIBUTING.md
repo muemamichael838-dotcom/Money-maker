@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for improving HuggingMes.
+Thanks for improving Money Maker 🤑.
 
 ## Local Checks
 

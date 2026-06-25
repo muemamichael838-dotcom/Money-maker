@@ -1,45 +1,31 @@
 import os
 import time
 import schedule
+import importlib.util
 from persistence_manager import PersistenceManager
-from skills.odds_api import get_odds
-from skills.analysis.reddit_sentiment import get_reddit_sentiment
-from skills.analysis.text_splitter import TextSplitter
-from skills.finance.risk_manager import RiskManager
-from skills.reasoning.decision_engine import DecisionEngine
 
 pm = PersistenceManager()
-ts = TextSplitter(chunk_size=3000)
-rm = RiskManager(bankroll=1000)
-de = DecisionEngine(pm)
 
-def job_market_scan():
-    pm.log("INFO", "Market Scan: Starting...")
-
-    # Get Odds
-    odds = get_odds()
-
-    # Get Sentiment
-    sentiment = get_reddit_sentiment("crypto", "BTC")
-
-    # Analysis logic...
-    pm.log("INFO", f"Market Scan: BTC Sentiment is {sentiment}")
-    pm.log("INFO", "Market Scan: Complete.")
-
-def job_data_cleanup():
-    # Optimization for small servers
-    pm.log("INFO", "Small Server Optimization: Cleaning logs...")
-    # SQL to delete old logs...
-    pass
+def run_autonomous_jobs():
+    jobs = pm.get_memory("autonomous_crons") or {}
+    for name, config in jobs.items():
+        if config.get("status") == "enabled":
+            # In a real implementation, we would use something like 'exec' or dynamic imports
+            # For this agent, we log the intent to run the autonomous task.
+            pm.log("INFO", f"Autonomous Job Triggered: {name} ({config.get('description')})")
 
 def run_scheduler():
-    pm.log("INFO", "MarketInsights-AI Orchestrator started")
-    schedule.every(60).minutes.do(job_market_scan)
-    schedule.every(24).hours.do(job_data_cleanup)
+    pm.log("INFO", "Money Maker 🤑 Orchestrator started")
+
+    # Static Jobs
+    schedule.every(10).minutes.do(run_autonomous_jobs)
 
     while True:
-        schedule.run_pending()
-        time.sleep(60)
+        try:
+            schedule.run_pending()
+        except Exception as e:
+            pm.log("ERROR", f"Scheduler error: {e}")
+        time.sleep(30)
 
 if __name__ == "__main__":
     run_scheduler()

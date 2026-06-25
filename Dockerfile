@@ -9,10 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium libpq-dev sqlite3 nodejs npm \
     && rm -rf /var/lib/apt/lists/*
 
-ENV MARKET_INSIGHTS_APP_DIR=/opt/market-insights
-RUN mkdir -p ${MARKET_INSIGHTS_APP_DIR} && chown hermes:hermes ${MARKET_INSIGHTS_APP_DIR}
+ENV MONEY_MAKER_APP_DIR=/opt/market-insights
+RUN mkdir -p ${MONEY_MAKER_APP_DIR} && chown hermes:hermes ${MONEY_MAKER_APP_DIR}
 
-WORKDIR ${MARKET_INSIGHTS_APP_DIR}
+WORKDIR ${MONEY_MAKER_APP_DIR}
 
 COPY requirements.txt .
 
@@ -28,7 +28,7 @@ RUN chmod +x *.sh *.py
 RUN echo 'export PATH="/opt/hermes/.venv/bin:/opt/data/.local/bin:$PATH"' > /etc/profile.d/hermes-venv.sh
 
 ENV HERMES_HOME=/opt/data \
-    HUGGINGMES_APP_DIR=${MARKET_INSIGHTS_APP_DIR} \
+    MONEY_MAKER_APP_DIR=${MONEY_MAKER_APP_DIR} \
     PYTHONUNBUFFERED=1 \
     PORT=10000
 

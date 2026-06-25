@@ -5,7 +5,7 @@ import sqlite3
 class PersistenceManager:
     def __init__(self):
         self.postgres_url = os.environ.get("POSTGRES_URL")
-        self.sqlite_path = os.path.join(os.environ.get("MARKET_INSIGHTS_HOME", "/opt/data"), "memory.db")
+        self.sqlite_path = os.path.join(os.environ.get("MONEY_MAKER_HOME", "/opt/data"), "memory.db")
 
         self.conn = None
         self.db_type = None

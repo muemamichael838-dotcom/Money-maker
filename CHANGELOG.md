@@ -14,7 +14,7 @@
 
 ### Features
 
-- **ENV Builder** — interactive UI at `/env-builder` for configuring all Space secrets. Grouped sections: Core, Backup, Telegram, Terminal, Providers, Cloudflare, Advanced. Model picker with provider/model-name presets. Import/export as `HUGGINGMES_ENV_BUNDLE` or plain `.env`.
+- **ENV Builder** — interactive UI at `/env-builder` for configuring all Space secrets. Grouped sections: Core, Backup, Telegram, Terminal, Providers, Cloudflare, Advanced. Model picker with provider/model-name presets. Import/export as `MONEY_MAKER_ENV_BUNDLE` or plain `.env`.
 - **JupyterLab terminal** — full shell access at `/terminal/`. On by default (`DEV_MODE=true`). Uses `GATEWAY_TOKEN` as terminal password — no separate `JUPYTER_TOKEN` needed. Dashboard button added.
 - **Chromium browser tools** — installs Chromium and display/font libs so Hermes browser-use tools work out of the box.
 - **Plugin persistence** — Hermes plugin directory symlinked into the persistent volume; plugins survive container restarts.
@@ -43,7 +43,7 @@
 
 ## 0.1.0 - 2026-05-03
 
-- Initial HuggingMes Docker Space wrapper for Nous Research Hermes Agent.
+- Initial Money Maker 🤑 Docker Space wrapper for Nous Research Hermes Agent.
 - Added HF Space dashboard, `/health`, `/status`, `/v1/*` proxy, and Telegram webhook proxy.
 - Added Cloudflare Worker setup for Telegram Bot API base URL proxying.
 - Added private HF Dataset backup and restore for Hermes state.

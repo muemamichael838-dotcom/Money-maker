@@ -1,56 +1,28 @@
----
-title: Money Maker 🤑 (Enterprise)
-emoji: 🛡️
-colorFrom: blue
-colorTo: indigo
-sdk: docker
-pinned: false
----
+# 🤑 Money Maker Agent
 
-# Money Maker 🤑 (Enterprise Edition)
+An autonomous AI agent designed for market insights, betting analysis, and automated money-making strategies. Based on the Hermes Agent architecture, optimized for 24/7 operation on Hugging Face Docker Spaces.
 
-**Advanced Autonomous AI Agent for Market Research and Data Science**
+## 🚀 Features
 
-Money Maker 🤑 is a high-performance research agent designed for 24/7 data gathering, sentiment analysis, and multi-source reporting. It is optimized for zero-downtime execution on free tier cloud platforms.
+- **Multi-Layer AI Failover:** Support for Groq, Google (Gemini), Hugging Face, OpenAI, and Anthropic. Automatic key rotation and provider failover.
+- **Persistent Memory:** Integrated with SQLite (local) and Postgres/Supabase (remote).
+- **Advanced Skills:**
+  - **Betting Analysis:** Gets real-time odds from Odds API.
+  - **Market Intelligence:** Connected to Wikipedia and full web scraping capabilities (including Apify).
+  - **Skill Creation:** Can generate its own Python skills at runtime.
+- **24/7 Operation:** Built-in health server, keepalive loops, and Cloudflare integration to prevent hibernation.
+- **Professional UI:** Professional dark-mode dashboard inspired by ChatGPT.
+- **Root Access:** Full control over the Docker Space environment for advanced tasks.
 
-## 🚀 Deployment Guide
+## 🛠 Setup
 
-### 1. Render (Free Tier) - RECOMMENDED
-- **Service Type**: Web Service
-- **Runtime**: Docker
-- **Build Command**: Leave empty (uses Dockerfile)
-- **Start Command**: `./start.sh`
-- **Port**: 10000 (Set in Env Vars as `PORT=10000`)
-- **Root Directory**: Leave **BLANK** (default to repository root).
-- **Environment Variables**:
-    - `GATEWAY_TOKEN`: Your secret dashboard password.
-    - `RENDER_EXTERNAL_URL`: Your service URL (e.g., `https://my-agent.onrender.com`).
-    - `POSTGRES_URL`: (Optional) Link a Render Postgres instance for persistent memory.
-    - `GROQ_API_KEYS`, `HUGGINGFACE_API_KEYS`, etc.
+1. Deploy to Hugging Face Docker Spaces.
+2. Visit `/env-builder` to configure your API keys.
+3. Use `MONEY_MAKER_ENV_BUNDLE` to save and restore your configuration securely.
 
-### 2. Hugging Face Spaces (Free)
-- **SDK**: Docker
-- **Hardware**: CPU Basic (Free)
-- **Settings**: Add your API keys and `GATEWAY_TOKEN` to the "Variables and Secrets" section.
-- **Auto-Update**: Pushing to your GitHub repository will automatically trigger a redeploy via the included GitHub Action.
+## 🔒 Security & Privacy
 
-### 3. Railway (Free Tier)
-- **Deploy**: Connect your GitHub repository.
-- **Port**: Automatically detected, or set `PORT=10000`.
-- **Database**: Provision a Postgres instance on Railway and point `POSTGRES_URL` to the connection string.
-- **Networking**: Ensure "Public Networking" is enabled for the web service.
-
-## 🛠 Features
-
-- **Multi-Key Failover**: Automatically rotates API keys when limits are hit.
-- **Text Splitting**: In-built recursive character splitter to avoid LLM context errors.
-- **Self-Saving Memory**: Uses local SQLite by default, with seamless Postgres fallback for permanent storage.
-- **24/7 Keep-Alive**: Internal services prevent the agent from idling on free tier servers.
-- **HITL Safety**: Human-in-the-loop confirmation required for destructive actions.
-
-## ⚖️ Disclaimer
-
-For Educational and Research purposes only. This agent does not provide financial advice.
+Money Maker runs in your private Docker Space. All API keys and data are stored securely and never shared.
 
 ---
-*Built for the Year 2029. Focus on Data. Manage Risk. Stay Autonomous.*
+*Educational Tool. No Financial Advice. Always bet responsibly.*
