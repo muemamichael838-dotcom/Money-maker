@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "Starting Money Maker Agent 🤑 (v1.3)..."
+echo "Starting Money Maker Agent 🤑 (v1.4)..."
 
 export MONEY_MAKER_HOME="${MONEY_MAKER_HOME:-/opt/data}"
 export APP_DIR="/opt/market-insights"
@@ -37,17 +37,18 @@ start_cron_manager() {
 }
 
 start_dashboard() {
-  echo "Attempting to launch Money Maker Dashboard on 127.0.0.1:$DASHBOARD_PORT..."
-  # Try binary first, then python module
-  ($HERMES_BIN dashboard --host 127.0.0.1 --port "$DASHBOARD_PORT" --insecure 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/dashboard.log") || \
-  ($PYTHON_BIN -m hermes.dashboard --host 127.0.0.1 --port "$DASHBOARD_PORT" --insecure 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/dashboard.log") || \
-  echo "CRITICAL: Dashboard failed to start." | tee -a "$MONEY_MAKER_HOME/logs/dashboard.log" &
+  echo "Attempting to launch Money Maker Dashboard on 0.0.0.0:$DASHBOARD_PORT..."
+  # Try binary first, then python module directly
+  ($HERMES_BIN dashboard --host 0.0.0.0 --port "$DASHBOARD_PORT" --insecure 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/dashboard.log") || \
+  ($PYTHON_BIN -m hermes.dashboard --host 0.0.0.0 --port "$DASHBOARD_PORT" --insecure 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/dashboard.log") || \
+  ($PYTHON_BIN -m hermes dashboard --host 0.0.0.0 --port "$DASHBOARD_PORT" --insecure 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/dashboard.log") || \
+  echo "CRITICAL: Dashboard failed to start using all methods." | tee -a "$MONEY_MAKER_HOME/logs/dashboard.log" &
 }
 
 start_jupyter() {
   if [ "${DEV_MODE:-true}" == "false" ]; then return 0; fi
   echo "Launching Root Terminal (JupyterLab)..."
-  ($PYTHON_BIN -m jupyterlab --ip=127.0.0.1 --port=${JUPYTER_PORT} --no-browser --NotebookApp.token="${GATEWAY_TOKEN:-}" --NotebookApp.password="" --allow-root 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/jupyter.log") &
+  ($PYTHON_BIN -m jupyterlab --ip=0.0.0.0 --port=${JUPYTER_PORT} --no-browser --NotebookApp.token="${GATEWAY_TOKEN:-}" --NotebookApp.password="" --allow-root 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/jupyter.log") &
 }
 
 start_keepalive() {
