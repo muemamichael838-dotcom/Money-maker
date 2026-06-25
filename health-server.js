@@ -11,7 +11,6 @@ const GATEWAY_HOST = "127.0.0.1";
 const GATEWAY_PORT = process.env.GATEWAY_API_PORT || 8642;
 const DASHBOARD_PORT = process.env.DASHBOARD_PORT || 9119;
 const JUPYTER_PORT = process.env.JUPYTER_PORT || 8888;
-const TELEGRAM_WEBHOOK_PORT = 8000;
 
 const API_SERVER_KEY = process.env.GATEWAY_TOKEN || "";
 const APP_BASE = "/app";
@@ -24,7 +23,6 @@ const HF_SPACE_URL = SPACE_ID ? `https://huggingface.co/spaces/${SPACE_ID}` : ""
 let SPACE_IS_PRIVATE = !!SPACE_ID;
 let _privacyDetectionDone = false;
 
-// Helpers
 const log = (msg) => console.log(`[${new Date().toISOString()}] [health-server] ${msg}`);
 const err = (msg, error) => console.error(`[${new Date().toISOString()}] [health-server] ERROR: ${msg}`, error || "");
 
@@ -33,7 +31,6 @@ const privacyDetectionReady = (async () => {
     _privacyDetectionDone = true;
     return;
   }
-  log(`Detecting privacy for Space: ${SPACE_ID}`);
   const apiUrl = `https://huggingface.co/api/spaces/${SPACE_ID}`;
   try {
     const fetch = (url) =>
@@ -53,7 +50,6 @@ const privacyDetectionReady = (async () => {
     if (status === 200) {
       const json = JSON.parse(data);
       SPACE_IS_PRIVATE = json.private === true;
-      log(`Space privacy detected: ${SPACE_IS_PRIVATE ? "PRIVATE" : "PUBLIC"}`);
     }
   } catch (e) {
     err("Privacy detection failed", e);
@@ -126,32 +122,7 @@ async function handleLogin(req, res, parsed) {
 }
 
 function renderLoginPage(error = "", next = "") {
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Money Maker 🤑 - Login</title>
-  <style>
-    body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; display: flex; height: 100vh; margin: 0; align-items: center; justify-content: center; }
-    .card { background: #1a1d23; padding: 2rem; border-radius: 8px; width: 320px; text-align: center; }
-    h1 { color: #10a37f; }
-    input { width: 100%; padding: 10px; margin: 15px 0; background: #2d3139; border: 1px solid #3e4451; color: white; border-radius: 4px; box-sizing: border-box; }
-    button { background: #10a37f; color: white; border: none; padding: 10px; width: 100%; border-radius: 4px; cursor: pointer; }
-    .error { color: #ff4b4b; margin-top: 10px; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>Money Maker 🤑</h1>
-    <form method="POST">
-      <input type="hidden" name="next" value="${next || ""}">
-      <input type="password" name="password" placeholder="Gateway Token" required autofocus>
-      <button type="submit">Unlock Dashboard</button>
-      ${error ? `<div class="error">${error}</div>` : ""}
-    </form>
-  </div>
-</body>
-</html>`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Money Maker 🤑 - Login</title><style>body { background: #0b0e14; color: #e1e1e1; font-family: sans-serif; display: flex; height: 100vh; margin: 0; align-items: center; justify-content: center; }.card { background: #1a1d23; padding: 2rem; border-radius: 8px; width: 320px; text-align: center; }h1 { color: #10a37f; }input { width: 100%; padding: 10px; margin: 15px 0; background: #2d3139; border: 1px solid #3e4451; color: white; border-radius: 4px; box-sizing: border-box; }button { background: #10a37f; color: white; border: none; padding: 10px; width: 100%; border-radius: 4px; cursor: pointer; }.error { color: #ff4b4b; margin-top: 10px; }</style></head><body><div class="card"><h1>Money Maker 🤑</h1><form method="POST"><input type="hidden" name="next" value="${next || ""}"><input type="password" name="password" placeholder="Gateway Token" required autofocus><button type="submit">Unlock Dashboard</button>${error ? `<div class="error">${error}</div>` : ""}</form></div></body></html>`;
 }
 
 function canConnect(port) {
@@ -172,22 +143,6 @@ function canConnect(port) {
     });
     socket.connect(port, GATEWAY_HOST);
   });
-}
-
-async function statusPayload() {
-  const [gateway, dashboard, jupyter] = await Promise.all([
-    canConnect(GATEWAY_PORT),
-    canConnect(DASHBOARD_PORT),
-    canConnect(JUPYTER_PORT),
-  ]);
-  return {
-    ok: gateway && dashboard,
-    gateway,
-    dashboard,
-    jupyter,
-    uptime: process.uptime(),
-    private: SPACE_IS_PRIVATE,
-  };
 }
 
 function proxyRequest(req, res, targetPort, rewritePath = (path) => path, headerOverrides = {}) {
@@ -217,6 +172,9 @@ function proxyRequest(req, res, targetPort, rewritePath = (path) => path, header
   );
 
   proxy.on("error", (error) => {
+    if (error.code === "ECONNREFUSED" && wantsHtml(req)) {
+        return sendResponse(res, 503, "text/html", `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Money Maker 🤑 - Starting</title><style>body { background: #0b0e14; color: white; font-family: sans-serif; display: flex; height: 100vh; margin: 0; align-items: center; justify-content: center; text-align: center; }h1 { color: #10a37f; }.loader { border: 4px solid #f3f3f3; border-top: 4px solid #10a37f; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style><script>setTimeout(() => location.reload(), 5000);</script></head><body><div><h1>Money Maker 🤑</h1><div class="loader"></div><p>Engine is warming up... Dashboard will appear in a few seconds.</p><small>Connecting to port ${targetPort} (ECONNREFUSED)</small></div></body></html>`);
+    }
     err(`Proxy error to port ${targetPort}`, error);
     sendResponse(res, 502, "application/json", JSON.stringify({ error: "proxy_error", message: error.message }));
   });
@@ -229,55 +187,29 @@ const server = http.createServer(async (req, res) => {
     const parsed = new URL(req.url, "http://localhost");
     const path = parsed.pathname;
 
-    // Health checks - no auth required
     if (path === "/health" || path === "/status") {
-      const data = await statusPayload();
-      return sendResponse(res, 200, "application/json", JSON.stringify(data));
+      const [gateway, dashboard] = await Promise.all([canConnect(GATEWAY_PORT), canConnect(DASHBOARD_PORT)]);
+      return sendResponse(res, 200, "application/json", JSON.stringify({ ok: gateway && dashboard, gateway, dashboard, uptime: process.uptime() }));
     }
 
-    if (path === LOGIN_PATH) {
-        return await handleLogin(req, res, parsed);
-    }
+    if (path === LOGIN_PATH) return await handleLogin(req, res, parsed);
+    if (path === "/api/is-private") return sendResponse(res, 200, "application/json", JSON.stringify({ isPrivate: SPACE_IS_PRIVATE }));
+    if (path === "/") return redirect(res, `${APP_BASE}/`);
 
-    if (path === "/api/is-private") {
-        if (!_privacyDetectionDone) await privacyDetectionReady;
-        return sendResponse(res, 200, "application/json", JSON.stringify({ isPrivate: SPACE_IS_PRIVATE }));
-    }
-
-    // Root redirect
-    if (path === "/") {
-        return redirect(res, `${APP_BASE}/`);
-    }
-
-    // Auth guard for all other routes
     if (!isAuthorized(req)) {
-        if (wantsHtml(req)) {
-            return redirect(res, loginUrl(path + parsed.search));
-        }
+        if (wantsHtml(req)) return redirect(res, loginUrl(path + parsed.search));
         return sendResponse(res, 401, "application/json", JSON.stringify({ error: "unauthorized" }));
     }
 
-    // Routing
-    if (path.startsWith(APP_BASE)) {
-        return proxyRequest(req, res, DASHBOARD_PORT, (p) => p.replace(/^\/app/, "") || "/");
-    }
+    if (path.startsWith(APP_BASE)) return proxyRequest(req, res, DASHBOARD_PORT, (p) => p.replace(/^\/app/, "") || "/");
 
     if (path.startsWith(TERMINAL_BASE)) {
-        const up = await canConnect(JUPYTER_PORT);
-        if (!up) return sendResponse(res, 503, "text/plain", "Terminal service starting...");
-
         const jToken = process.env.JUPYTER_TOKEN || API_SERVER_KEY;
-        if (jToken && wantsHtml(req) && !parsed.searchParams.has("token")) {
-            return redirect(res, `${path}${parsed.search}${parsed.search ? "&" : "?"}token=${jToken}`);
-        }
+        if (jToken && wantsHtml(req) && !parsed.searchParams.has("token")) return redirect(res, `${path}${parsed.search}${parsed.search ? "&" : "?"}token=${jToken}`);
         return proxyRequest(req, res, JUPYTER_PORT, (p) => p, { authorization: `token ${jToken}` });
     }
 
-    if (path.startsWith("/v1")) {
-        return proxyRequest(req, res, GATEWAY_PORT);
-    }
-
-    // Fallback to dashboard for static assets
+    if (path.startsWith("/v1")) return proxyRequest(req, res, GATEWAY_PORT);
     return proxyRequest(req, res, DASHBOARD_PORT);
 
   } catch (caught) {
@@ -295,12 +227,7 @@ server.on("upgrade", (req, socket, head) => {
     ps.write(`${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`);
     ps.write(`Host: ${GATEWAY_HOST}:${targetPort}\r\n`);
     ps.write("X-Forwarded-Proto: https\r\n");
-
-    // Inject Origin for dashboard WS
-    if (!isJupyter) {
-        ps.write(`Origin: http://${GATEWAY_HOST}:${targetPort}\r\n`);
-    }
-
+    if (!isJupyter) ps.write(`Origin: http://${GATEWAY_HOST}:${targetPort}\r\n`);
     for (let i = 0; i < req.rawHeaders.length; i += 2) {
       const lower = req.rawHeaders[i].toLowerCase();
       if (["host", "origin", "x-forwarded-proto"].includes(lower)) continue;

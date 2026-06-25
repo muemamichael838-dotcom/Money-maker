@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "Starting Money Maker Agent 🤑 (v1.1)..."
+echo "Starting Money Maker Agent 🤑 (v1.2)..."
 
 export MONEY_MAKER_HOME="${MONEY_MAKER_HOME:-/opt/data}"
 export APP_DIR="/opt/market-insights"
@@ -11,16 +11,22 @@ export GATEWAY_API_PORT="${GATEWAY_API_PORT:-8642}"
 export DASHBOARD_PORT="${DASHBOARD_PORT:-9119}"
 export JUPYTER_PORT="${JUPYTER_PORT:-8888}"
 
+# Robust Path Detection
 PYTHON_BIN="/opt/hermes/.venv/bin/python"
 if [ ! -f "$PYTHON_BIN" ]; then
     PYTHON_BIN=$(which python3)
+fi
+
+# Detect Hermes binary
+HERMES_BIN="/opt/hermes/.venv/bin/hermes"
+if [ ! -f "$HERMES_BIN" ]; then
+    HERMES_BIN=$(which hermes || echo "hermes")
 fi
 
 mkdir -p "${MONEY_MAKER_HOME}/workspace" "${MONEY_MAKER_HOME}/logs" "${MONEY_MAKER_HOME}/.local/bin"
 
 echo "Launching Primary Health Server on 0.0.0.0:$PORT..."
 node "${APP_DIR}/health-server.js" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/health-server.log" &
-HEALTH_PID=$!
 
 start_api_proxy() {
   echo "Launching Multi-Layer API Proxy (Port 8000)..."
@@ -33,14 +39,14 @@ start_cron_manager() {
 }
 
 start_dashboard() {
-  echo "Launching Money Maker Pro Dashboard..."
-  /usr/local/bin/market-insights dashboard --host 127.0.0.1 --port "$DASHBOARD_PORT" --insecure 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/dashboard.log" &
+  echo "Launching Money Maker Pro Dashboard (Port $DASHBOARD_PORT)..."
+  $HERMES_BIN dashboard --host 0.0.0.0 --port "$DASHBOARD_PORT" --insecure 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/dashboard.log" &
 }
 
 start_jupyter() {
   if [ "${DEV_MODE:-true}" == "false" ]; then return 0; fi
   echo "Launching Root Terminal (JupyterLab)..."
-  ($PYTHON_BIN -m jupyterlab --ip=127.0.0.1 --port=${JUPYTER_PORT} --no-browser --NotebookApp.token="${GATEWAY_TOKEN:-}" --NotebookApp.password="" --allow-root 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/jupyter.log") &
+  ($PYTHON_BIN -m jupyterlab --ip=0.0.0.0 --port=${JUPYTER_PORT} --no-browser --NotebookApp.token="${GATEWAY_TOKEN:-}" --NotebookApp.password="" --allow-root 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/jupyter.log") &
 }
 
 start_keepalive() {
@@ -48,6 +54,7 @@ start_keepalive() {
   $PYTHON_BIN "${APP_DIR}/render_keepalive.py" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/keepalive.log" &
 }
 
+# Execute background services
 start_api_proxy
 start_cron_manager
 start_dashboard
@@ -57,8 +64,8 @@ start_keepalive
 export OPENAI_BASE_URL="http://127.0.0.1:8000/v1"
 
 while true; do
-  echo "Launching Money Maker AI Gateway..."
+  echo "Launching Money Maker AI Gateway (Port $GATEWAY_API_PORT)..."
   export API_SERVER_PORT="$GATEWAY_API_PORT"
-  /usr/local/bin/market-insights gateway run 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/gateway.log" || echo "Gateway exited."
+  $HERMES_BIN gateway run 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/gateway.log" || echo "Gateway exited."
   sleep 5
 done

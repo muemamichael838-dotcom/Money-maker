@@ -1,14 +1,15 @@
-# Deployment Fix: Money Maker 🤑 (v1.1)
+# Deployment Fix: Money Maker 🤑 (v1.2) - ECONNREFUSED Resolving
 
-## Root Cause Analysis
-The 502 Bad Gateway error was caused by a Node.js runtime exception in the proxy server.
-1. **Header Conflict**: The server attempted to call `res.writeHead()` multiple times for a single request, which is fatal in Node.js.
-2. **Path Resolution**: The `start.sh` script used relative paths which were inconsistent between local dev and the Docker container's absolute environment (`/opt/market-insights`).
+## Problem
+Users reported a `proxy_error: ECONNREFUSED 127.0.0.1:9119` after logging in.
+Diagnosis:
+1. **Startup Lag**: The heavy Python-based dashboard takes 10-30 seconds to fully initialize and bind to its port.
+2. **Binary Pathing**: The previous `start.sh` relied on `market-insights` which might not have been correctly linked in all environments.
 
-## Resolution
-- **Proxy Stability**: Rewrote `health-server.js` from scratch. Added explicit `res.headersSent` checks and unified the response pipeline to ensure only one "terminal" action is taken per request.
-- **Absolute Environment**: Hardcoded `/opt/market-insights` as the base directory in `start.sh` and `Dockerfile` to align with the `hermes-agent` base image expectations.
-- **Enhanced Debugging**: Added millisecond-precision ISO timestamps to all proxy logs and ensured all background processes redirect both `stdout` and `stderr` to the persistent log directory.
+## Solution
+- **Absolute Targeting**: Updated `start.sh` to explicitly search for and use absolute paths for the `hermes` binary (`/opt/hermes/.venv/bin/hermes`).
+- **Wait-for-Service UI**: Modified `health-server.js` to catch `ECONNREFUSED`. Instead of a JSON error, it now serves a professional "Engine Warming Up" HTML page with an auto-refresh script. This keeps the user engaged while the dashboard starts.
+- **Internal Networking**: Standardized all internal service hosts to `0.0.0.0` or `127.0.0.1` consistently to avoid bridge networking issues on Render.
 
-## Deployment Advice
-When deploying to Render/HF, always check the "Service Logs" specifically for the phrase `[health-server]`. If the server binds to the port successfully, the 502 error is likely internal to the proxy logic rather than a networking failure.
+## UX Improvement
+The "Starting Up" page provides immediate visual feedback that the system is working, reducing perceived "brokenness" during the initial container boot.
