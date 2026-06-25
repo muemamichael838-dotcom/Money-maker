@@ -1,15 +1,15 @@
-# Deployment Fix: Money Maker 🤑 (v1.2) - ECONNREFUSED Resolving
+# Deployment Fix: Money Maker 🤑 (v1.3) - Dashboard Port Stability
 
 ## Problem
-Users reported a `proxy_error: ECONNREFUSED 127.0.0.1:9119` after logging in.
-Diagnosis:
-1. **Startup Lag**: The heavy Python-based dashboard takes 10-30 seconds to fully initialize and bind to its port.
-2. **Binary Pathing**: The previous `start.sh` relied on `market-insights` which might not have been correctly linked in all environments.
+The error `connect ECONNREFUSED 127.0.0.1:9119` persisted because the dashboard service was either crashing on start or failing to bind to the port using the primary command.
 
 ## Solution
-- **Absolute Targeting**: Updated `start.sh` to explicitly search for and use absolute paths for the `hermes` binary (`/opt/hermes/.venv/bin/hermes`).
-- **Wait-for-Service UI**: Modified `health-server.js` to catch `ECONNREFUSED`. Instead of a JSON error, it now serves a professional "Engine Warming Up" HTML page with an auto-refresh script. This keeps the user engaged while the dashboard starts.
-- **Internal Networking**: Standardized all internal service hosts to `0.0.0.0` or `127.0.0.1` consistently to avoid bridge networking issues on Render.
+- **Multi-Phase Startup**: Updated `start.sh` to attempt three different ways of launching the dashboard:
+    1. Using the absolute `market-insights` binary.
+    2. Using the virtual environment's `hermes` binary.
+    3. Using the Python module directly (`python -m hermes.dashboard`).
+- **Emergency Diagnostics**: Added a `/api/logs` endpoint to the health server. This allows users to view the last 50 lines of the `dashboard.log` file directly in their browser if the dashboard fails to load.
+- **Networking Precision**: Standardized all internal service calls to `127.0.0.1` to eliminate any DNS or hostname resolution overhead during container boot.
 
 ## UX Improvement
-The "Starting Up" page provides immediate visual feedback that the system is working, reducing perceived "brokenness" during the initial container boot.
+The system now provides a clear path for debugging (`/api/logs`) if the "Engine Warming Up" screen persists for more than 60 seconds.
