@@ -12,3 +12,4 @@ schedule
 numpy
 fastapi
 uvicorn
+python-dotenv

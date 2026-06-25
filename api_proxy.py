@@ -2,7 +2,7 @@ import os
 import json
 import random
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse
 import uvicorn
 import litellm
 from litellm import completion
@@ -29,12 +29,16 @@ def get_next_key(provider):
     KEY_POOLS[provider].append(key)
     return key
 
+@app.get("/")
+@app.get("/health")
+async def health():
+    return {"status": "proxy_online"}
+
 @app.post("/v1/chat/completions")
 async def chat_completions(request: Request):
     body = await request.json()
     model = body.get("model", "")
 
-    # Determine provider
     provider = "openai"
     if "groq" in model: provider = "groq"
     elif "huggingface" in model or "hf" in model: provider = "huggingface"
@@ -47,7 +51,6 @@ async def chat_completions(request: Request):
     for _ in range(max_retries):
         api_key = get_next_key(provider)
         try:
-            # Use litellm completion with the selected key
             response = completion(
                 **body,
                 api_key=api_key
@@ -59,10 +62,6 @@ async def chat_completions(request: Request):
             continue
 
     raise HTTPException(status_code=500, detail=str(last_exception))
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

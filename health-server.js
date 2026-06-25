@@ -1022,6 +1022,7 @@ server.on("upgrade", (req, socket, head) => {
 
 server.timeout = 0;
 server.keepAliveTimeout = 65000;
+console.log(`[health-server] Attempting to bind to 0.0.0.0:${PORT}...`);
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`MarketInsights-AI dashboard listening on 0.0.0.0:${PORT}`);
 });

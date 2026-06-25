@@ -1,34 +1,38 @@
 import os
 import json
-import psycopg2
 import sqlite3
 
 class PersistenceManager:
     def __init__(self):
         self.postgres_url = os.environ.get("POSTGRES_URL")
-        self.sqlite_path = "/opt/data/memory.db"
+        self.sqlite_path = os.path.join(os.environ.get("MARKET_INSIGHTS_HOME", "/opt/data"), "memory.db")
 
-        # Self-saving: prefer local postgres or sqlite
         self.conn = None
+        self.db_type = None
+
         if self.postgres_url:
             try:
+                import psycopg2
                 self.conn = psycopg2.connect(self.postgres_url)
-                self._init_db("postgres")
-            except Exception:
+                self.db_type = "postgres"
+                print("Using Postgres backend.")
+            except Exception as e:
+                print(f"Postgres connection failed: {e}. Falling back to SQLite.")
                 self._use_sqlite()
         else:
             self._use_sqlite()
 
+        self._init_db()
+
     def _use_sqlite(self):
         os.makedirs(os.path.dirname(self.sqlite_path), exist_ok=True)
         self.conn = sqlite3.connect(self.sqlite_path, check_same_thread=False)
-        self._init_db("sqlite")
+        self.db_type = "sqlite"
+        print(f"Using SQLite backend at {self.sqlite_path}")
 
-    def _init_db(self, db_type):
-        placeholder = "%s" if db_type == "postgres" else "?"
+    def _init_db(self):
         cur = self.conn.cursor()
-
-        if db_type == "postgres":
+        if self.db_type == "postgres":
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS logs (
                     id SERIAL PRIMARY KEY,
@@ -37,6 +41,8 @@ class PersistenceManager:
                     message TEXT,
                     metadata JSONB
                 );
+            """)
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS memory (
                     id SERIAL PRIMARY KEY,
                     key TEXT UNIQUE,
@@ -45,6 +51,7 @@ class PersistenceManager:
                 );
             """)
         else:
+            # SQLite requires separate calls or executescript
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,6 +60,8 @@ class PersistenceManager:
                     message TEXT,
                     metadata TEXT
                 );
+            """)
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS memory (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     key TEXT UNIQUE,
@@ -66,22 +75,21 @@ class PersistenceManager:
         print(f"[{level}] {message}")
         try:
             cur = self.conn.cursor()
-            if hasattr(self.conn, 'psycopg2'): # Rough check
+            if self.db_type == "postgres":
                 cur.execute("INSERT INTO logs (level, message, metadata) VALUES (%s, %s, %s)",
                             (level, message, json.dumps(metadata)))
             else:
                 cur.execute("INSERT INTO logs (level, message, metadata) VALUES (?, ?, ?)",
                             (level, message, json.dumps(metadata)))
             self.conn.commit()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Logging error: {e}")
 
     def save_memory(self, key, value):
         try:
             cur = self.conn.cursor()
             val_str = json.dumps(value)
-            # Generic upsert
-            if os.environ.get("POSTGRES_URL"):
+            if self.db_type == "postgres":
                 cur.execute("""
                     INSERT INTO memory (key, value, updated_at) VALUES (%s, %s, CURRENT_TIMESTAMP)
                     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
@@ -91,13 +99,13 @@ class PersistenceManager:
                     INSERT OR REPLACE INTO memory (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
                 """, (key, val_str))
             self.conn.commit()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Memory save error: {e}")
 
     def get_memory(self, key):
         try:
             cur = self.conn.cursor()
-            if os.environ.get("POSTGRES_URL"):
+            if self.db_type == "postgres":
                 cur.execute("SELECT value FROM memory WHERE key = %s", (key,))
             else:
                 cur.execute("SELECT value FROM memory WHERE key = ?", (key,))
