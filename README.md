@@ -51,3 +51,29 @@ docker-compose up --build
 
 ---
 *Built for Security. Managed by Humans. Powered by AI.*
+
+## 🚀 Deployment Guide
+
+### 1. Hugging Face Spaces (Free/Enterprise)
+- **SDK**: Docker
+- **Hardware**: CPU Basic (Free) or better.
+- **Secrets**: Add `GATEWAY_TOKEN`, `HF_TOKEN`, and your API key pools.
+- **Auto-Sync**: Use the provided GitHub Action `.github/workflows/sync-to-huggingface.yml`.
+
+### 2. Render (Free Tier)
+- **Service Type**: Web Service
+- **Runtime**: Docker
+- **Port**: 10000
+- **Database**: Create a Render Postgres instance and link it via `POSTGRES_URL`.
+- **Keep-Alive**: The agent includes an internal `render_keepalive.py` that pings itself to prevent idling.
+- **Environment Variables**: Add `RENDER_EXTERNAL_URL` (your app's URL) to enable the keep-alive service.
+
+### 3. Railway (Free Tier)
+- **Deploy**: Connect your GitHub repository.
+- **Runtime**: Automatically detects Dockerfile.
+- **Port**: Automatically detected or set `PORT=10000`.
+- **Database**: Use Railway's Postgres plugin and link `DATABASE_URL` to `POSTGRES_URL`.
+- **Persistence**: Railway free tier volumes are ephemeral; ensure `POSTGRES_URL` is set for permanent storage.
+
+---
+*Created for the elite analysts of 2029. Focus on Data. Manage Risk. Stay Compliant.*

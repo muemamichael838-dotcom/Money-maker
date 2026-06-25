@@ -18,7 +18,8 @@ COPY requirements.txt .
 
 RUN uv pip install --python /opt/hermes/.venv/bin/python --no-cache-dir -r requirements.txt \
     && printf 'hermes ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/hermes \
-    && chmod 0440 /etc/sudoers.d/hermes
+    && chmod 0440 /etc/sudoers.d/hermes \
+    && ln -s /opt/hermes/.venv/bin/hermes /usr/local/bin/market-insights
 
 COPY --chown=hermes:hermes . .
 
@@ -31,7 +32,7 @@ ENV MARKET_INSIGHTS_HOME=/opt/data \
     PYTHONUNBUFFERED=1 \
     PORT=10000
 
-EXPOSE 7860
+EXPOSE 10000
 
 # Run as standard user for security compliance
 USER hermes
