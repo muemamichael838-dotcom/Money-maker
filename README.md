@@ -61,6 +61,7 @@ docker-compose up --build
 - **Auto-Sync**: Use the provided GitHub Action `.github/workflows/sync-to-huggingface.yml`.
 
 ### 2. Render (Free Tier)
+- **Root Directory**: Leave this **BLANK** (default to repository root).
 - **Service Type**: Web Service
 - **Runtime**: Docker
 - **Port**: 10000
