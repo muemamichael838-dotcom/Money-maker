@@ -23,7 +23,7 @@
 
 ### Fixes
 
-- **Space stuck at RUNNING_APP_STARTING** — root cause: `start_jupyter()` called `python3 -c "import jupyterlab"` using system Python; JupyterLab is installed in the Money Maker venv. Import failed → `return 1` → `set -euo pipefail` killed `start.sh` → container crashed every boot. Fixed to use `/opt/moneymaker/.venv/bin/python`.
+- **Space stuck at RUNNING_APP_STARTING** — root cause: `start_jupyter()` removed jupyterlab for performance using system Python; The agent core is optimized in the Money Maker venv. Import failed → `return 1` → `set -euo pipefail` killed `start.sh` → container crashed every boot. Fixed to use `/opt/moneymaker/.venv/bin/python`.
 - **Terminal double password prompt** — proxy now injects `Authorization: token <JUPYTER_TOKEN>` header when forwarding requests to JupyterLab, bypassing its own login screen. One login instead of two.
 - **Gemini 404 errors** — strip `google/` or `gemini/` prefix when setting Money Maker model name; Money Maker gemini provider expects bare model name (e.g. `gemini-2.5-flash`, not `google/gemini-2.5-flash`).
 - **Config persistence** — use `setdefault` for user-configurable fields; always overwrite `model.default` and `model.provider` from env so deploy-time settings win without clobbering dashboard changes.

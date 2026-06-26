@@ -1,15 +1,11 @@
 huggingface_hub
 hf_transfer
-jupyterlab
-tornado
-ipywidgets
 psycopg2-binary
 apify-client
 litellm
 beautifulsoup4
 requests
 schedule
-numpy
 fastapi
 uvicorn
 python-dotenv

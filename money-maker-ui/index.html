@@ -177,7 +177,7 @@
             if (currentPage !== 'logs' || !logTerm) return;
             try {
                 const status = await apiFetch('/api/status');
-                const logPath = `${status.MONEY_MAKER_HOME || status.hermes_home}/agent.log`;
+                const logPath = `${status.MONEY_MAKER_HOME || status.MONEY_MAKER_HOME}/agent.log`;
                 const data = await apiFetch(`/api/fs/read-text?path=${encodeURIComponent(logPath)}`);
                 if (data && data.text) { logTerm.clear(); logTerm.write(data.text.split('\n').slice(-100).join('\r\n')); }
             } catch (e) { }
