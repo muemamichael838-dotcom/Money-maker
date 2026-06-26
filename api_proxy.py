@@ -8,20 +8,22 @@ import uvicorn
 
 app = FastAPI()
 
-# Map environment variables to pools
-KEY_POOLS = {
-    "groq": os.environ.get("GROQ_API_KEYS", "").split(","),
-    "huggingface": os.environ.get("HUGGINGFACE_API_KEYS", "").split(","),
-    "google": os.environ.get("GOOGLE_API_KEYS", "").split(","),
-    "openai": os.environ.get("OPENAI_API_KEYS", "").split(","),
-    "anthropic": os.environ.get("ANTHROPIC_API_KEYS", "").split(","),
-}
+def get_pools():
+    # Supports both singular (comma separated) and plural env vars
+    pools = {
+        "groq": (os.environ.get("GROQ_API_KEYS") or os.environ.get("GROQ_API_KEY") or "").split(","),
+        "huggingface": (os.environ.get("HUGGINGFACE_API_KEYS") or os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY") or "").split(","),
+        "google": (os.environ.get("GOOGLE_API_KEYS") or os.environ.get("GOOGLE_API_KEY") or "").split(","),
+        "openai": (os.environ.get("OPENAI_API_KEYS") or os.environ.get("OPENAI_API_KEY") or "").split(","),
+        "anthropic": (os.environ.get("ANTHROPIC_API_KEYS") or os.environ.get("ANTHROPIC_API_KEY") or "").split(","),
+    }
+    # Clean and filter
+    for p in pools:
+        pools[p] = [k.strip() for k in pools[p] if k.strip()]
+    return pools
 
-# Clean empty strings
-for provider in KEY_POOLS:
-    KEY_POOLS[provider] = [k.strip() for k in KEY_POOLS[provider] if k.strip()]
+KEY_POOLS = get_pools()
 
-# Provider Configuration
 PROVIDERS = {
     "groq": {
         "url": "https://api.groq.com/openai/v1/chat/completions",
@@ -46,19 +48,19 @@ PROVIDERS = {
 }
 
 def get_next_key(provider):
-    if not KEY_POOLS.get(provider):
-        # Fallback to single key if pool is empty
-        val = os.environ.get(f"{provider.upper()}_API_KEY")
-        return val if val else None
-
-    key = KEY_POOLS[provider].pop(0)
-    KEY_POOLS[provider].append(key)
-    return key
+    # Refresh pools to pick up live env changes if any
+    pools = get_pools()
+    pool = pools.get(provider, [])
+    if not pool:
+        return None
+    # We rotate using a simple global index or just random for now to handle statelessness better
+    return random.choice(pool)
 
 @app.get("/")
 @app.get("/health")
 async def health():
-    return {"status": "proxy_online", "providers": list(KEY_POOLS.keys())}
+    pools = get_pools()
+    return {"status": "proxy_online", "active_providers": {p: len(v) for p, v in pools.items() if v}}
 
 @app.post("/v1/chat/completions")
 async def chat_completions(request: Request):
@@ -84,15 +86,23 @@ async def chat_completions(request: Request):
         target_url = target_url.format(model=body.get("model"))
 
     # Determine retry count based on pool size
-    pool = KEY_POOLS.get(provider, [])
-    max_retries = max(len(pool), 1) + 1
+    pool = get_pools().get(provider, [])
+    max_retries = max(len(pool), 3) # At least 3 retries
     last_error = "Unknown error"
+
+    # Keep track of used keys in this request to avoid immediate reuse on failure
+    tried_keys = set()
 
     for _ in range(max_retries):
         api_key = get_next_key(provider)
         if not api_key:
             last_error = f"No API key found for {provider}"
+            break
+
+        if api_key in tried_keys and len(tried_keys) < len(pool):
             continue
+
+        tried_keys.add(api_key)
 
         headers = {"Content-Type": "application/json"}
         if config["header_type"] == "Bearer":
@@ -113,8 +123,9 @@ async def chat_completions(request: Request):
             if response.status_code == 200:
                 return response.json()
 
+            # Handle rate limits or key errors
             last_error = f"Status {response.status_code}: {response.text}"
-            print(f"Provider {provider} failed: {last_error}. Rotating...")
+            print(f"Provider {provider} failed with {response.status_code}. Rotating...")
 
         except Exception as e:
             last_error = str(e)
@@ -124,5 +135,4 @@ async def chat_completions(request: Request):
     raise HTTPException(status_code=500, detail=f"All keys for {provider} failed. Last error: {last_error}")
 
 if __name__ == "__main__":
-    # Internal bind to 127.0.0.1 as start.sh expects
     uvicorn.run(app, host="127.0.0.1", port=8000)
