@@ -29,6 +29,7 @@ class PersistenceManager:
         sqlite_path = os.path.join(os.environ.get("MONEY_MAKER_HOME", "/opt/data"), "memory.db")
         os.makedirs(os.path.dirname(sqlite_path), exist_ok=True)
         self.conn = sqlite3.connect(sqlite_path, check_same_thread=False)
+        self.conn.execute("PRAGMA journal_mode=WAL")
         self.db_type = "sqlite"
         print(f"Using SQLite backend at {sqlite_path}")
 
@@ -84,6 +85,10 @@ class PersistenceManager:
                 cur.execute("INSERT INTO logs (level, message, metadata) VALUES (?, ?, ?)",
                             (level, message, meta))
             self.conn.commit()
+            # Also write to local log file for UI access
+            log_file = os.path.join(os.environ.get("MONEY_MAKER_HOME", "/opt/data"), "agent.log")
+            with open(log_file, "a") as f:
+                f.write(f"[{level}] {message}\n")
         except Exception as e:
             print(f"Logging error: {e}")
 

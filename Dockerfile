@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl jq sudo python3 sqlite3 nodejs npm \
     && rm -rf /var/lib/apt/lists/*
 
+# Fix for s6-overlay /run permissions on restricted platforms (Render/HF)
+RUN mkdir -p /run && chmod 777 /run
+
 ENV APP_DIR=/app
 RUN mkdir -p ${APP_DIR} && chown hermes:hermes ${APP_DIR}
 
@@ -23,8 +26,6 @@ RUN printf 'hermes ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/hermes \
 COPY --chown=hermes:hermes . .
 
 # Deep Rebranding Patch - Stabilized Display-Only
-# We ONLY target display strings. We MUST NOT replace lowercase 'hermes'
-# or internal technical keys as it breaks imports (e.g., 'moneymaker_cli').
 RUN set -ex; \
     PYTHON_EXE="/opt/hermes/.venv/bin/python"; \
     PKG_PATH=$($PYTHON_EXE -c "import hermes_cli; print(hermes_cli.__path__[0])"); \
@@ -35,7 +36,6 @@ RUN set -ex; \
 RUN chmod +x *.sh *.py
 
 # Space Configuration
-# We use standard engine variables to ensure the backend functions.
 ENV HERMES_HOME=/opt/data \
     HERMES_WEB_DIST=${APP_DIR}/money-maker-ui \
     PYTHONUNBUFFERED=1 \
@@ -43,5 +43,6 @@ ENV HERMES_HOME=/opt/data \
 
 EXPOSE 7860
 
+# We stay as root to ensure we can handle permission fixes at runtime in start.sh
 USER root
 CMD ["/app/start.sh"]

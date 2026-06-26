@@ -1,0 +1,34 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="emeraldGradient" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10a37f"/>
+      <stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- Outer Ring (Circuit Style) -->
+  <circle cx="64" cy="64" r="60" stroke="url(#emeraldGradient)" stroke-width="1" stroke-dasharray="8 4" opacity="0.4"/>
+  <circle cx="64" cy="64" r="54" stroke="url(#emeraldGradient)" stroke-width="2" stroke-dasharray="2 6"/>
+
+  <!-- Core Symbol -->
+  <g filter="url(#glow)">
+    <!-- Dollar Path refined for Tech look -->
+    <path d="M64 20V108M48 35H72C78 35 84 39 84 46.5C84 54 78 58 72 58H48C42 58 36 62 36 69.5C36 77 42 81 48 81H80" stroke="url(#emeraldGradient)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Tech Bits -->
+    <rect x="60" y="15" width="8" height="12" rx="2" fill="url(#emeraldGradient)"/>
+    <rect x="60" y="101" width="8" height="12" rx="2" fill="url(#emeraldGradient)"/>
+    <circle cx="48" cy="35" r="4" fill="url(#emeraldGradient)"/>
+    <circle cx="80" cy="81" r="4" fill="url(#emeraldGradient)"/>
+  </g>
+
+  <!-- Data Nodes -->
+  <circle cx="94" cy="64" r="3" fill="#10a37f" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="34" cy="64" r="3" fill="#10a37f" opacity="0.8">
+    <animate attributeName="opacity" values="0.2;0.8;0.2" dur="2s" repeatCount="indefinite" />
+  </circle>
+</svg>

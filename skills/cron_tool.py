@@ -1,27 +1,27 @@
-import os
 import json
+import os
 from persistence_manager import PersistenceManager
 
-pm = PersistenceManager()
+def add_cron_job(name, interval_seconds, script_path):
+    pm = PersistenceManager()
+    cron_file = os.path.join(os.environ.get("MONEY_MAKER_HOME", "/opt/data"), "crons.json")
+    crons = []
+    if os.path.exists(cron_file):
+        with open(cron_file, 'r') as f:
+            crons = json.load(f)
 
-def add_cron_job(name, interval_minutes, task_description):
-    """
-    Registers a new autonomous task for the Money Maker orchestrator.
-    The orchestrator runs in cron_manager.py.
-    """
-    jobs = pm.get_memory("autonomous_crons") or {}
-    jobs[name] = {
-        "interval": interval_minutes,
-        "description": task_description,
-        "status": "enabled"
-    }
-    pm.save_memory("autonomous_crons", jobs)
-    pm.log("INFO", f"Autonomous Cron Added: {name} every {interval_minutes}m")
-    return f"Job '{name}' has been scheduled."
+    crons.append({
+        "name": name,
+        "interval": interval_seconds,
+        "script": script_path,
+        "last_run": 0
+    })
 
-def list_cron_jobs():
-    """Returns all active autonomous cron jobs."""
-    return pm.get_memory("autonomous_crons") or {}
+    with open(cron_file, 'w') as f:
+        json.dump(crons, f)
+
+    pm.log("INFO", f"New cron created: {name}")
+    return f"Cron job '{name}' scheduled successfully."
 
 if __name__ == "__main__":
-    print(add_cron_job("Check BTC", 30, "Check bitcoin price and alert if > 100k"))
+    print("Cron tool ready.")

@@ -1,30 +1,34 @@
-import os
+from persistence_manager import PersistenceManager
 
 class MultiKeyManager:
     def __init__(self, env_var_name):
-        self.keys = os.environ.get(env_var_name, "").split(",")
-        self.keys = [k.strip() for k in self.keys if k.strip()]
-        self.index = 0
+        self.env_var_name = env_var_name
+        self.pm = PersistenceManager()
 
     def get_key(self):
-        if not self.keys:
-            return os.environ.get(env_var_name.replace("_KEYS", "_KEY"))
+        # Prefer DB-stored key if exists
+        stored = self.pm.get_memory(f"key_{self.env_var_name}")
+        if stored: return stored
 
-        key = self.keys[self.index]
-        self.index = (self.index + 1) % len(self.keys)
-        return key
+        # Fallback to env
+        import os
+        keys = os.environ.get(self.env_var_name, "").split(",")
+        return keys[0] if keys else None
 
     def rotate_on_error(self):
-        """Called when a key fails to move to the next one."""
-        if not self.keys: return
-        self.index = (self.index + 1) % len(self.keys)
+        import os
+        keys = os.environ.get(self.env_var_name, "").split(",")
+        if len(keys) > 1:
+            # Shift the list in memory if possible or just log it
+            self.pm.log("WARNING", f"Rotating keys for {self.env_var_name}")
+            # Simple rotation logic: store next key in DB
+            current = self.get_key()
+            try:
+                idx = keys.index(current)
+                next_key = keys[(idx + 1) % len(keys)]
+                self.pm.save_memory(f"key_{self.env_var_name}", next_key)
+            except ValueError:
+                self.pm.save_memory(f"key_{self.env_var_name}", keys[0])
 
-def get_rotated_key(env_var_name):
-    pool = os.environ.get(env_var_name, "").split(",")
-    pool = [k.strip() for k in pool if k.strip()]
-    if not pool:
-        return os.environ.get(env_var_name.replace("_KEYS", "_KEY"))
-    # For stateless functions, we might need a more persistent way to track index,
-    # but for simple skill calls, we pick one.
-    import random
-    return random.choice(pool)
+if __name__ == "__main__":
+    print("Multi-key manager ready.")
