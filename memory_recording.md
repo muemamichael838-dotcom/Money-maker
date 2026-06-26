@@ -1,9 +1,9 @@
 # Money Maker 🤑 - Agent Architecture Learnings
 
 ## Rebranding & Stealth
-- Autonomous rebranding was achieved by patching the underlying `hermes_cli` package at runtime in the Dockerfile.
-- This includes renaming UI tokens (`__HERMES_` -> `__MONEY_MAKER_`), Environment Variables (`HERMES_HOME` -> `MONEY_MAKER_HOME`), and Auth Headers (`X-Hermes-Session-Token` -> `X-MoneyMaker-Session-Token`).
-- Rebranding display strings prevents the agent from identifying as "Hermes" in chat and logs.
+- Autonomous rebranding was achieved by patching the underlying `moneymaker_cli` package at runtime in the Dockerfile.
+- This includes renaming UI tokens (`__HERMES_` -> `__MONEY_MAKER_`), Environment Variables (`HERMES_HOME` -> `MONEY_MAKER_HOME`), and Auth Headers (`X-Money Maker-Session-Token` -> `X-MoneyMaker-Session-Token`).
+- Rebranding display strings prevents the agent from identifying as "Money Maker" in chat and logs.
 
 ## Dashboard
 - A custom React-less high-fidelity dashboard was built from scratch using Tailwind CSS, Lucide icons, and Xterm.js.

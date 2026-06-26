@@ -1,25 +1,37 @@
 import os
 import requests
 import time
-from bs4 import BeautifulSoup
-from apify_client import ApifyClient
+import re
 
-def scrape_url(url, use_apify=False):
-    # Politeness delay
-    time.sleep(2)
-
-    if use_apify:
-        client = ApifyClient(os.environ.get("APIFY_TOKEN"))
-        run_input = { "startUrls": [{ "url": url }] }
-        run = client.actor("apify/web-scraper-smart").call(run_input=run_input)
-        return list(client.dataset(run["defaultDatasetId"]).iterate_items())
+def scrape_website(url):
+    """
+    Ultra-lightweight web scraper using requests and regex.
+    Zero external dependencies besides standard library.
+    """
+    print(f"Scraping {url}...")
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
 
     try:
-        response = requests.get(url, timeout=10, headers={'User-Agent': 'MoneyMaker/0.1'})
-        soup = BeautifulSoup(response.content, 'html.parser')
-        return {
-            "title": soup.title.string if soup.title else "",
-            "text": soup.get_text()[:5000]
-        }
+        response = requests.get(url, headers=headers, timeout=15)
+        if response.status_code != 200:
+            return f"Error: Status code {response.status_code}"
+
+        html = response.text
+        # Very crude text extraction
+        text = re.sub(r'<script.*?>.*?</script>', '', html, flags=re.DOTALL)
+        text = re.sub(r'<style.*?>.*?</style>', '', text, flags=re.DOTALL)
+        text = re.sub(r'<.*?>', ' ', text)
+        text = re.sub(r'\s+', ' ', text).strip()
+
+        return text[:5000]
+
     except Exception as e:
-        return f"Scraping failed: {e}"
+        return f"Scraping failed: {str(e)}"
+
+def get_market_news():
+    return scrape_website("https://www.reuters.com/markets/")
+
+if __name__ == "__main__":
+    print(get_market_news()[:500])

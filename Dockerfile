@@ -4,11 +4,9 @@ FROM nousresearch/hermes-agent:${AGENT_VERSION}
 
 USER root
 
-# Install system dependencies
-# We minimize system packages to save space and memory.
+# Install minimal system dependencies for stability and basic shell utilities
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl jq sudo python3 python3-venv python3-pip \
-    sqlite3 nodejs npm \
+    ca-certificates curl jq sudo python3 sqlite3 nodejs npm \
     && rm -rf /var/lib/apt/lists/*
 
 ENV APP_DIR=/app
@@ -16,23 +14,19 @@ RUN mkdir -p ${APP_DIR} && chown hermes:hermes ${APP_DIR}
 
 WORKDIR ${APP_DIR}
 
-# Copy requirements
-COPY requirements.txt .
+# No external python dependencies required.
+# We use the optimized agent core provided in the base image.
 
-# Install dependencies into the existing Hermes venv
-# Using --prefer-binary to avoid memory-heavy compilation of packages like psycopg2-binary
-RUN /opt/hermes/.venv/bin/python -m pip install --no-cache-dir --upgrade pip && \
-    /opt/hermes/.venv/bin/python -m pip install --no-cache-dir --prefer-binary -r requirements.txt
-
-# Setup sudo and vanity alias
+# Setup sudo and vanity binary
 RUN printf 'hermes ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/hermes \
     && chmod 0440 /etc/sudoers.d/hermes \
     && ln -sf /opt/hermes/.venv/bin/hermes /usr/local/bin/money-maker
 
-# Copy application files
+# Copy application files (rebranded custom logic)
 COPY --chown=hermes:hermes . .
 
-# Deep Rebranding Patch - Surgical & Comprehensive
+# Deep Rebranding Patch
+# Rebrands the core agent engine to Money Maker 🤑
 RUN set -ex; \
     PYTHON_EXE="/opt/hermes/.venv/bin/python"; \
     PKG_PATH=$($PYTHON_EXE -c "import hermes_cli; print(hermes_cli.__path__[0])"); \
@@ -40,11 +34,14 @@ RUN set -ex; \
     find "$PKG_PATH" -type f \( -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" \) -print0 | xargs -0 -r sed -i 's/Nous Research/Money Maker/g'; \
     find "$PKG_PATH" -type f \( -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" \) -print0 | xargs -0 -r sed -i 's/Hermes/MoneyMaker/g'; \
     find "$PKG_PATH" -type f \( -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" \) -print0 | xargs -0 -r sed -i 's/hermes/moneymaker/g'; \
-    find "$PKG_PATH" -type f \( -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" \) -print0 | xargs -0 -r sed -i 's/__HERMES_/__MONEY_MAKER_/g'
+    find "$PKG_PATH" -type f \( -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" \) -print0 | xargs -0 -r sed -i 's/__HERMES_/__MONEY_MAKER_/g'; \
+    find "$PKG_PATH" -type f \( -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" \) -print0 | xargs -0 -r sed -i 's/HERMES_HOME/MONEY_MAKER_HOME/g'; \
+    find "$PKG_PATH" -type f \( -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" \) -print0 | xargs -0 -r sed -i 's/HERMES_WEB_DIST/MM_WEB_DIST/g'; \
+    find "$PKG_PATH" -type f \( -name "*.py" -o -name "*.js" -o -name "*.html" -o -name "*.css" \) -print0 | xargs -0 -r sed -i 's/X-Hermes-Session-Token/X-MoneyMaker-Session-Token/g'
 
 RUN chmod +x *.sh *.py
 
-# Persistence and UI Config
+# Space Configuration
 ENV MONEY_MAKER_HOME=/opt/data \
     HERMES_HOME=/opt/data \
     MM_WEB_DIST=${APP_DIR}/money-maker-ui \
@@ -54,6 +51,5 @@ ENV MONEY_MAKER_HOME=/opt/data \
 
 EXPOSE 7860
 
-# Re-run as root for space init
 USER root
 CMD ["/app/start.sh"]

@@ -1,12 +1,14 @@
 #!/bin/bash
-# Money Maker Agent 🤑 - Security Bypass Build v8.0
+# Money Maker Agent 🤑 - Security Bypass Build v10.0
 set -u
 
 echo "--- MONEY MAKER SECURITY BYPASS BOOT ---"
 
 export MONEY_MAKER_HOME="${MONEY_MAKER_HOME:-/opt/data}"
+export HERMES_HOME="$MONEY_MAKER_HOME"
 export APP_DIR="/app"
 export MM_WEB_DIST="${APP_DIR}/money-maker-ui"
+export HERMES_WEB_DIST="$MM_WEB_DIST"
 mkdir -p "${MONEY_MAKER_HOME}/logs"
 
 # SECURITY OVERRIDES
@@ -22,7 +24,7 @@ touch "${MONEY_MAKER_HOME}/logs/dashboard.log"
 node "${APP_DIR}/health-server.js" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/health-server.log" &
 
 # 2. Identify Python Environment
-PYTHON_BIN="/opt/hermes/.venv/bin/python"
+PYTHON_BIN="/opt/moneymaker/.venv/bin/python"
 [ ! -f "$PYTHON_BIN" ] && PYTHON_BIN=$(which python3)
 
 # 3. Start Multi-Layer API Proxy
