@@ -2,138 +2,223 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Money Maker 🤑 - Agent Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Money Maker 🤑 | Control Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #212121; color: #ececec; }
-        .sidebar { background-color: #171717; }
-        .emerald-accent { color: #10b981; border-color: #10b981; }
-        .emerald-bg { background-color: #10b981; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #424242; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-        .tab-active { border-bottom: 2px solid #10b981; color: #10b981; }
-        #terminal-container, #terminal-chat-container { background: #000; border-radius: 8px; overflow: hidden; }
-        .skill-card { background: #2f2f2f; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.1); }
-        .skill-card:hover { border-color: #10b981; }
-        .config-card { background: #2f2f2f; border-radius: 1rem; padding: 1.5rem; border: 1px solid rgba(255,255,255,0.1); }
-        input[type="text"], input[type="password"], textarea { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; padding: 0.75rem 1rem; width: 100%; outline: none; transition: border-color 0.2s; }
-        input:focus, textarea:focus { border-color: #10b981; }
+        :root {
+            --bg-primary: #09090b;
+            --bg-secondary: #121214;
+            --emerald-bright: #10a37f;
+            --emerald-glow: rgba(16, 163, 127, 0.2);
+            --border-muted: rgba(255, 255, 255, 0.08);
+        }
+        body {
+            background-color: var(--bg-primary);
+            color: #ececec;
+            font-family: 'Geist', sans-serif;
+            overflow: hidden;
+        }
+        .sidebar-item {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
+            box-shadow: inset 2px 0 0 var(--emerald-bright);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-muted);
+        }
+        .emerald-btn {
+            background-color: var(--emerald-bright);
+            transition: all 0.2s;
+        }
+        .emerald-btn:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 0 20px var(--emerald-glow);
+        }
+        .xterm-viewport::-webkit-scrollbar { width: 6px; }
+        .xterm-viewport::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        @media (max-width: 768px) {
+            .desktop-sidebar { display: none; }
+            .mobile-nav { display: flex; }
+            .content-container { padding-bottom: 80px; }
+        }
+        @media (min-width: 769px) {
+            .mobile-nav { display: none; }
+        }
     </style>
 </head>
-<body class="h-screen flex overflow-hidden">
+<body class="h-screen flex">
 
-    <!-- Sidebar -->
-    <div class="sidebar w-64 flex flex-col h-full hidden md:flex border-r border-white/10">
-        <div class="p-4 flex items-center gap-3">
-            <div class="emerald-bg p-2 rounded-lg">
-                <i data-lucide="trending-up" class="text-white w-6 h-6"></i>
-            </div>
-            <span class="text-xl font-bold tracking-tight text-white">Money Maker <span class="text-emerald-500">🤑</span></span>
-        </div>
-
-        <div class="px-3 mt-4">
-            <button onclick="location.reload()" class="w-full flex items-center gap-2 px-4 py-3 border border-white/20 rounded-xl hover:bg-white/5 transition text-sm font-medium text-white">
-                <i data-lucide="plus" class="w-4 h-4"></i>
-                New Chat
-            </button>
-        </div>
-
-        <div class="flex-1 overflow-y-auto px-3 mt-6 space-y-1" id="chat-history">
-            <div class="text-xs font-semibold text-gray-500 px-4 py-2 uppercase tracking-wider">Agent Status</div>
-            <div id="agent-status-card" class="px-4 py-3 bg-white/5 rounded-xl border border-white/5 mx-1">
-                <div class="flex items-center gap-2 mb-1">
-                    <div class="w-2 h-2 rounded-full bg-yellow-500" id="status-dot"></div>
-                    <span id="status-text" class="text-xs font-bold text-gray-300">Initializing...</span>
+    <div id="setup-overlay" class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 hidden">
+        <div class="max-w-md w-full glass-card rounded-3xl p-8 space-y-8 animate-in fade-in zoom-in duration-500">
+            <div class="text-center">
+                <div class="inline-flex p-4 bg-emerald-500/10 rounded-full mb-6">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="24" cy="24" r="22" stroke="#10a37f" stroke-width="2" stroke-dasharray="4 4"/>
+                        <path d="M24 12V36M18 16H27C28.5 16 30 17.5 30 19.5C30 21.5 28.5 23 27 23H18M21 23H30C31.5 23 33 24.5 33 26.5C33 28.5 31.5 30 30 30H21" stroke="#10a37f" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
                 </div>
-                <div class="text-[10px] text-gray-500 font-mono">Money Maker Engine 2029</div>
+                <h2 class="text-3xl font-black text-white tracking-tight">Setup Money Maker</h2>
+                <p class="text-gray-400 mt-2">Initialize your autonomous market engine.</p>
             </div>
-        </div>
 
-        <div class="p-4 border-t border-white/10">
-            <div class="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition text-white" onclick="showPage('api')">
-                <div class="w-8 h-8 rounded-full emerald-bg flex items-center justify-center font-bold text-xs uppercase">MM</div>
-                <div class="flex-1 text-sm font-medium">Control Center</div>
-                <i data-lucide="settings" class="w-4 h-4 text-gray-400"></i>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Primary AI Engine</label>
+                    <select id="setup-model" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 outline-none">
+                        <option value="llama-3.1-70b-versatile">Groq: Llama 3.1 70B</option>
+                        <option value="gemini-1.5-pro">Google: Gemini 1.5 Pro</option>
+                        <option value="meta-llama/Meta-Llama-3-8B-Instruct">HF: Llama 3 8B</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Groq Keys (key1,key2...)</label>
+                    <input type="password" id="setup-groq" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 outline-none" placeholder="Required for high-speed reasoning">
+                </div>
+                <button onclick="performInitialSetup()" class="w-full emerald-btn text-white font-bold py-4 rounded-xl shadow-xl mt-4">
+                    Launch Autonomous Agent
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col h-full bg-[#212121]">
-        <header class="h-14 border-b border-white/5 flex items-center justify-between px-6 shrink-0 bg-[#212121]">
-            <div class="flex items-center gap-6">
-                <nav class="flex gap-4 text-sm font-medium text-gray-400">
-                    <button onclick="showPage('chat')" class="nav-btn py-4 px-2 tab-active" id="btn-chat">Chat</button>
-                    <button onclick="showPage('skills')" class="nav-btn py-4 px-2 hover:text-white" id="btn-skills">Capabilities</button>
-                    <button onclick="showPage('logs')" class="nav-btn py-4 px-2 hover:text-white" id="btn-logs">Terminal</button>
-                    <button onclick="showPage('api')" class="nav-btn py-4 px-2 hover:text-white" id="btn-api">Config</button>
-                </nav>
+    <aside class="desktop-sidebar w-72 h-full bg-black/40 border-r border-white/5 flex flex-col p-6 space-y-8 relative">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="p-2 bg-emerald-500/10 rounded-xl">
+                <svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="24" cy="24" r="22" stroke="#10a37f" stroke-width="3"/>
+                    <path d="M24 12V36M18 16H27C28.5 16 30 17.5 30 19.5C30 21.5 28.5 23 27 23H18M21 23H30C31.5 23 33 24.5 33 26.5C33 28.5 31.5 30 30 30H21" stroke="#10a37f" stroke-width="4" stroke-linecap="round"/>
+                </svg>
             </div>
-            <div class="flex items-center gap-4">
-                <button onclick="location.reload()" class="p-2 hover:bg-white/5 rounded-full" title="Refresh"><i data-lucide="refresh-cw" class="w-4 h-4 text-gray-400"></i></button>
-            </div>
-        </header>
+            <span class="text-xl font-black text-white tracking-tighter">MONEY MAKER</span>
+        </div>
 
-        <main class="flex-1 overflow-hidden relative">
-            <!-- Chat Page -->
-            <div id="page-chat" class="h-full flex flex-col max-w-5xl mx-auto w-full px-6 pt-6">
-                <div class="flex-1 flex flex-col mb-6">
-                    <div id="terminal-chat-container" class="flex-1 bg-black rounded-2xl overflow-hidden border border-white/10 shadow-2xl"></div>
+        <nav class="flex-1 space-y-2">
+            <button onclick="showPage('chat')" id="nav-chat" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white font-medium">
+                <i data-lucide="message-square" class="w-5 h-5"></i> Interface
+            </button>
+            <button onclick="showPage('skills')" id="nav-skills" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white font-medium">
+                <i data-lucide="zap" class="w-5 h-5"></i> Capabilities
+            </button>
+            <button onclick="showPage('logs')" id="nav-logs" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white font-medium">
+                <i data-lucide="terminal" class="w-5 h-5"></i> System Console
+            </button>
+        </nav>
+
+        <div class="pt-6 border-t border-white/5">
+            <div class="bg-white/5 rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Core Engine</span>
+                    <div id="status-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                 </div>
-                <div class="text-[10px] text-center text-gray-500 mb-6 uppercase tracking-widest font-bold">
-                    Autonomous Intelligence Interface · Money Maker 🤑
-                </div>
+                <p id="status-model" class="text-xs text-gray-400 truncate">Initializing...</p>
+                <button onclick="showPage('api')" class="w-full bg-white/5 py-2 rounded-lg text-[10px] font-bold hover:bg-white/10">ADVANCED CONFIG</button>
             </div>
+        </div>
+    </aside>
 
-            <!-- Skills Page -->
-            <div id="page-skills" class="h-full hidden overflow-y-auto p-10 max-w-6xl mx-auto">
-                <h1 class="text-4xl font-bold text-white tracking-tight mb-10">Agent Capabilities</h1>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="skills-list"></div>
-            </div>
-
-            <!-- Logs Page -->
-            <div id="page-logs" class="h-full hidden flex flex-col p-10">
-                <h1 class="text-4xl font-bold text-white tracking-tight mb-8">System Console</h1>
-                <div id="terminal-container" class="flex-1 border border-white/10 shadow-2xl rounded-2xl"></div>
-            </div>
-
-            <!-- API Config Page -->
-            <div id="page-api" class="h-full hidden overflow-y-auto p-10 max-w-4xl mx-auto">
-                <h1 class="text-4xl font-bold text-white tracking-tight mb-10">Control Center</h1>
-                <div class="grid gap-8">
-                    <div class="config-card space-y-6">
-                        <div class="flex items-center gap-4 border-b border-white/5 pb-4">
-                            <div class="p-3 bg-emerald-500/20 rounded-xl text-emerald-500"><i data-lucide="key" class="w-6 h-6"></i></div>
-                            <h3 class="text-xl font-bold text-white">API Configuration</h3>
-                        </div>
-                        <div class="space-y-4">
-                            <div><label class="block text-xs font-bold text-gray-400 uppercase mb-2">Groq Keys</label><input type="password" id="input-groq" placeholder="key1,key2..."></div>
-                            <div><label class="block text-xs font-bold text-gray-400 uppercase mb-2">Google Keys</label><input type="password" id="input-google" placeholder="key1,key2..."></div>
-                            <div><label class="block text-xs font-bold text-gray-400 uppercase mb-2">HF Token</label><input type="password" id="input-hf" placeholder="hf_..."></div>
-                        </div>
-                        <button onclick="saveEnv()" class="w-full emerald-bg text-white font-bold py-4 rounded-xl shadow-xl hover:opacity-90 transition-all flex items-center justify-center gap-2">
-                            <i data-lucide="save" class="w-5 h-5"></i> Save & Restart
-                        </button>
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative content-container">
+        <div id="page-chat" class="h-full flex flex-col max-w-6xl mx-auto w-full px-4 sm:px-10 pt-6">
+            <div class="flex-1 flex flex-col mb-4">
+                <div id="terminal-chat-container" class="flex-1 bg-black rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative">
+                    <div class="absolute top-6 right-6 opacity-20 pointer-events-none">
+                        <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="24" cy="24" r="22" stroke="#10a37f" stroke-width="2"/>
+                            <path d="M24 12V36M18 16H27C28.5 16 30 17.5 30 19.5C30 21.5 28.5 23 27 23H18M21 23H30C31.5 23 33 24.5 33 26.5C33 28.5 31.5 30 30 30H21" stroke="#10a37f" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+            <div class="text-[9px] text-center text-gray-600 mb-4 uppercase tracking-[0.3em] font-black flex items-center justify-center gap-4">
+                <span class="h-px w-10 bg-white/5"></span>
+                Money Maker Autonomous Intelligence 🤑
+                <span class="h-px w-10 bg-white/5"></span>
+            </div>
+        </div>
+
+        <div id="page-skills" class="h-full hidden overflow-y-auto p-6 sm:p-12 max-w-6xl mx-auto w-full">
+            <h1 class="text-4xl font-black text-white tracking-tight mb-2">Agent Capabilities</h1>
+            <p class="text-gray-500 mb-10 font-medium">Autonomous modules currently active in the core.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="skills-list"></div>
+        </div>
+
+        <div id="page-logs" class="h-full hidden flex flex-col p-6 sm:p-12">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-4xl font-black text-white tracking-tight mb-1">System Console</h1>
+                    <p class="text-gray-500 font-medium">Real-time execution stream.</p>
+                </div>
+                <button onclick="clearLogs()" class="p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"><i data-lucide="trash-2" class="w-5 h-5 text-gray-400"></i></button>
+            </div>
+            <div id="terminal-container" class="flex-1 bg-black rounded-3xl border border-white/5 shadow-2xl overflow-hidden"></div>
+        </div>
+
+        <div id="page-api" class="h-full hidden overflow-y-auto p-6 sm:p-12 max-w-4xl mx-auto w-full">
+            <h1 class="text-4xl font-black text-white tracking-tight mb-2">Configuration</h1>
+            <p class="text-gray-500 mb-10 font-medium">Manage API layers and key rotation pools.</p>
+
+            <div class="grid gap-6">
+                <div class="glass-card rounded-3xl p-8 space-y-6">
+                    <div class="flex items-center gap-4 border-b border-white/5 pb-6">
+                        <div class="p-4 bg-emerald-500/10 rounded-2xl text-emerald-500"><i data-lucide="layers" class="w-6 h-6"></i></div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white">Multi-Key Infrastructure</h3>
+                            <p class="text-xs text-gray-500">Provide keys separated by commas for automatic failover.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                        <div class="space-y-4">
+                            <div><label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Groq Keys</label><input type="password" id="input-groq" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 outline-none" placeholder="key1,key2..."></div>
+                            <div><label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Google AI Keys</label><input type="password" id="input-google" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 outline-none" placeholder="key1,key2..."></div>
+                        </div>
+                        <div class="space-y-4">
+                            <div><label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Hugging Face Token</label><input type="password" id="input-hf" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 outline-none" placeholder="hf_..."></div>
+                            <div><label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Default Model</label><input type="text" id="input-model" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 outline-none"></div>
+                        </div>
+                    </div>
+
+                    <button onclick="saveEnv()" class="w-full emerald-btn text-white font-bold py-5 rounded-2xl shadow-xl hover:opacity-90 transition-all flex items-center justify-center gap-3">
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i> Sync & Reload Configuration
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <nav class="mobile-nav fixed bottom-0 left-0 right-0 h-20 bg-black/80 backdrop-blur-xl border-t border-white/5 z-50 flex items-center justify-around px-4">
+        <button onclick="showPage('chat')" class="flex flex-col items-center gap-1 text-gray-500" id="mob-chat">
+            <i data-lucide="message-square" class="w-6 h-6"></i><span class="text-[8px] font-black uppercase tracking-widest">Agent</span>
+        </button>
+        <button onclick="showPage('skills')" class="flex flex-col items-center gap-1 text-gray-500" id="mob-skills">
+            <i data-lucide="zap" class="w-6 h-6"></i><span class="text-[8px] font-black uppercase tracking-widest">Skills</span>
+        </button>
+        <button onclick="showPage('logs')" class="flex flex-col items-center gap-1 text-gray-500" id="mob-logs">
+            <i data-lucide="terminal" class="w-6 h-6"></i><span class="text-[8px] font-black uppercase tracking-widest">Logs</span>
+        </button>
+        <button onclick="showPage('api')" class="flex flex-col items-center gap-1 text-gray-500" id="mob-api">
+            <i data-lucide="settings-2" class="w-6 h-6"></i><span class="text-[8px] font-black uppercase tracking-widest">Setup</span>
+        </button>
+    </nav>
 
     <script>
         lucide.createIcons();
         const token = window.__HERMES_SESSION_TOKEN__ || '';
         let currentPage = 'chat';
-        const pages = ['chat', 'skills', 'logs', 'api'];
         let mainTerm, logTerm, mainSocket;
 
         async function apiFetch(path, options = {}) {
@@ -143,8 +228,29 @@
             return resp.json();
         }
 
+        async function init() {
+            try {
+                const status = await apiFetch('/api/status');
+                document.getElementById('status-model').innerText = status.model || 'Autonomous Mode';
+                document.getElementById('input-model').value = status.model || '';
+
+                if (!status.env || !status.env.GROQ_API_KEY) {
+                    document.getElementById('setup-overlay').classList.remove('hidden');
+                }
+            } catch (e) {
+                console.error("Init failure", e);
+            }
+            initTerminals();
+        }
+
         function initTerminals() {
-            mainTerm = new Terminal({ theme: { background: '#000000', foreground: '#ffffff' }, fontSize: 14, cursorBlink: true });
+            mainTerm = new Terminal({
+                theme: { background: '#000000', foreground: '#ffffff', cursor: '#10a37f' },
+                fontSize: 15,
+                cursorBlink: true,
+                fontFamily: 'Geist Mono, monospace',
+                letterSpacing: 1
+            });
             const fitAddon = new FitAddon.FitAddon();
             mainTerm.loadAddon(fitAddon);
             mainTerm.open(document.getElementById('terminal-chat-container'));
@@ -153,14 +259,20 @@
             const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${protocol}//${location.host}/api/pty?token=${token}`;
             mainSocket = new WebSocket(wsUrl);
-            mainSocket.onopen = () => { updateStatus('connected'); mainTerm.writeln('\x1b[1;32mMONEY MAKER ONLINE\x1b[0m'); };
+            mainSocket.onopen = () => {
+                mainTerm.writeln('\x1b[1;32mONLINE\x1b[0m \x1b[90m| MONEY MAKER v2.0 READY\x1b[0m\r\n');
+            };
             mainSocket.onmessage = async (ev) => {
                 if (ev.data instanceof Blob) mainTerm.write(new Uint8Array(await ev.data.arrayBuffer()));
                 else mainTerm.write(ev.data);
             };
             mainTerm.onData(data => mainSocket.send(data));
 
-            logTerm = new Terminal({ theme: { background: '#000000', foreground: '#10b981' }, fontSize: 12 });
+            logTerm = new Terminal({
+                theme: { background: '#000000', foreground: '#10b981', selection: '#10a37f55' },
+                fontSize: 12,
+                fontFamily: 'Geist Mono, monospace'
+            });
             const logFit = new FitAddon.FitAddon();
             logTerm.loadAddon(logFit);
             logTerm.open(document.getElementById('terminal-container'));
@@ -177,77 +289,104 @@
                 const status = await apiFetch('/api/status');
                 const logPath = `${status.hermes_home}/agent.log`;
                 const data = await apiFetch(`/api/fs/read-text?path=${encodeURIComponent(logPath)}`);
-                if (data && data.text) { logTerm.clear(); logTerm.write(data.text.split('\n').slice(-100).join('\r\n')); }
+                if (data && data.text) {
+                    logTerm.clear();
+                    logTerm.write(data.text.split('\n').slice(-100).join('\r\n'));
+                }
             } catch (e) { }
         }
 
-        function updateStatus(state) {
-            const dot = document.getElementById('status-dot');
-            const text = document.getElementById('status-text');
-            if (state === 'connected') {
-                dot.className = 'w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]';
-                text.innerText = 'MONEY MAKER ACTIVE';
-                text.className = 'text-xs font-bold text-emerald-500';
-            } else {
-                dot.className = 'w-2 h-2 rounded-full bg-red-500';
-                text.innerText = 'OFFLINE';
-            }
-        }
-
         function showPage(pageId) {
-            pages.forEach(p => {
+            ['chat', 'skills', 'logs', 'api'].forEach(p => {
                 document.getElementById(`page-${p}`).classList.add('hidden');
-                document.getElementById(`btn-${p}`).classList.remove('tab-active', 'text-white');
+                const nav = document.getElementById(`nav-${p}`);
+                const mob = document.getElementById(`mob-${p}`);
+                if(nav) nav.classList.remove('active');
+                if(mob) mob.classList.remove('text-emerald-500');
+                if(mob) mob.classList.add('text-gray-500');
             });
+
             document.getElementById(`page-${pageId}`).classList.remove('hidden');
-            document.getElementById(`btn-${pageId}`).classList.add('tab-active', 'text-white');
+            const activeNav = document.getElementById(`nav-${pageId}`);
+            const activeMob = document.getElementById(`mob-${pageId}`);
+            if(activeNav) activeNav.classList.add('active');
+            if(activeMob) {
+                activeMob.classList.add('text-emerald-500');
+                activeMob.classList.remove('text-gray-500');
+            }
+
             currentPage = pageId;
             if (pageId === 'skills') loadSkills();
-            setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 100);
         }
 
         async function loadSkills() {
             const list = document.getElementById('skills-list');
-            list.innerHTML = '<div class="col-span-full py-10 flex justify-center"><div class="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full"></div></div>';
+            list.innerHTML = '<div class="col-span-full py-20 flex justify-center"><div class="animate-spin w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full"></div></div>';
             try {
                 const skills = await apiFetch('/api/skills');
                 list.innerHTML = '';
                 skills.forEach(s => {
                     const card = document.createElement('div');
-                    card.className = 'skill-card rounded-2xl p-6 flex flex-col gap-4';
+                    card.className = 'glass-card rounded-3xl p-8 flex flex-col gap-6 hover:scale-[1.02] transition-transform cursor-default';
                     card.innerHTML = `
                         <div class="flex items-center justify-between">
-                            <div class="p-3 bg-white/5 rounded-xl text-emerald-500"><i data-lucide="zap" class="w-6 h-6"></i></div>
-                            <div class="text-[10px] uppercase font-black tracking-widest text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full">Active</div>
+                            <div class="p-4 bg-emerald-500/10 rounded-2xl text-emerald-500"><i data-lucide="zap" class="w-6 h-6"></i></div>
+                            <div class="text-[9px] uppercase font-black tracking-widest text-emerald-500 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20">Active</div>
                         </div>
-                        <h4 class="font-bold text-xl text-white">${s.name}</h4>
-                        <p class="text-sm text-gray-400 line-clamp-2">${s.description || 'Autonomous capability module.'}</p>
+                        <div>
+                            <h4 class="font-black text-2xl text-white tracking-tight">${s.name}</h4>
+                            <p class="text-sm text-gray-500 mt-2 font-medium leading-relaxed">${s.description || 'Autonomous market capability module.'}</p>
+                        </div>
                     `;
                     list.appendChild(card);
                 });
                 lucide.createIcons();
-            } catch (e) { list.innerHTML = `<p class="text-red-400">Error: ${e.message}</p>`; }
+            } catch (e) { list.innerHTML = `<p class="text-red-400">Sync Failure: ${e.message}</p>`; }
+        }
+
+        async function performInitialSetup() {
+            const keys = {
+                'GROQ_API_KEY': document.getElementById('setup-groq').value,
+                'DEFAULT_MODEL': document.getElementById('setup-model').value
+            };
+            if (!keys.GROQ_API_KEY) { alert("Please provide at least one Groq key."); return; }
+            await saveGenericEnv(keys);
+            document.getElementById('setup-overlay').classList.add('hidden');
         }
 
         async function saveEnv() {
             const keys = {
                 'GROQ_API_KEY': document.getElementById('input-groq').value,
                 'GOOGLE_API_KEY': document.getElementById('input-google').value,
-                'HF_TOKEN': document.getElementById('input-hf').value
+                'HF_TOKEN': document.getElementById('input-hf').value,
+                'DEFAULT_MODEL': document.getElementById('input-model').value
             };
-            try {
-                for (const [k, v] of Object.entries(keys)) {
-                    if (v.trim()) {
-                        await apiFetch('/api/env', { method: 'PUT', body: JSON.stringify({ key: k, value: v.trim() }), headers: { 'Content-Type': 'application/json' } });
-                    }
-                }
-                alert("Settings saved. Restarting agent...");
-                await apiFetch('/api/gateway/restart', { method: 'POST' });
-                setTimeout(() => location.reload(), 2000);
-            } catch (e) { alert("Save failed: " + e.message); }
+            await saveGenericEnv(keys);
         }
 
-        initTerminals();
+        async function saveGenericEnv(keys) {
+            try {
+                for (const [k, v] of Object.entries(keys)) {
+                    if (v && v.trim()) {
+                        await apiFetch('/api/env', {
+                            method: 'PUT',
+                            body: JSON.stringify({ key: k, value: v.trim() }),
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                    }
+                }
+                alert("Core synchronized. Reloading...");
+                await apiFetch('/api/gateway/restart', { method: 'POST' });
+                setTimeout(() => location.reload(), 2000);
+            } catch (e) { alert("Sync failed: " + e.message); }
+        }
+
+        function clearLogs() {
+            if(logTerm) logTerm.clear();
+        }
+
+        init();
         showPage('chat');
     </script>
 </body>
