@@ -1,7 +1,7 @@
 # Money Maker 🤑 - Agent Architecture Learnings
 
 ## Rebranding & Stealth
-- Autonomous rebranding was achieved by patching the underlying `moneymaker_cli` package at runtime in the Dockerfile.
+- Autonomous rebranding was achieved by patching the underlying `hermes_cli` package at runtime in the Dockerfile.
 - This includes renaming UI tokens (`__HERMES_` -> `__MONEY_MAKER_`), Environment Variables (`HERMES_HOME` -> `MONEY_MAKER_HOME`), and Auth Headers (`X-Money Maker-Session-Token` -> `X-MoneyMaker-Session-Token`).
 - Rebranding display strings prevents the agent from identifying as "Money Maker" in chat and logs.
 
