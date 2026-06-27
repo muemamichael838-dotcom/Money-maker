@@ -19,7 +19,7 @@
         .emerald-btn:hover { transform: translateY(-1px); box-shadow: 0 0 35px var(--emerald-glow); filter: brightness(1.1); }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .pulse-emerald { animation: pulse 2s infinite; }
-        @media (max-width: 640px) { .desktop-sidebar, .tablet-sidebar { display: none; } .mobile-nav { display: flex; } .main-view { padding-bottom: 90px; } }
+        @media (max-width: 640px) { .desktop-sidebar, .tablet-sidebar { display: none !important; } .mobile-nav { display: flex !important; } .main-view { padding-bottom: 80px; width: 100vw !important; } .mobile-nav { bottom: 1.5rem; left: 1.5rem; right: 1.5rem; } }
         @media (min-width: 641px) and (max-width: 1024px) { .desktop-sidebar, .mobile-nav { display: none; } .tablet-sidebar { display: flex; } }
 
         @media (min-width: 1025px) {
@@ -191,24 +191,33 @@
             return r.json();
         }
 
+
         async function init() {
             try {
                 const s = await apiFetch('/api/status');
                 document.getElementById('status-model').innerText = s.model || 'Gemini 2.0 Flash';
                 document.getElementById('input-model').value = s.model || 'gemini-2.0-flash';
-                if (!s.env || !s.env.GROQ_API_KEY) {
-                    document.getElementById('welcome-view').classList.remove('hidden');
-                    document.getElementById('active-chat').classList.add('hidden');
-                } else {
+
+                // If s.env exists and has keys, or if s.status is active, bypass welcome
+                const hasKeys = s.env && (s.env.GROQ_API_KEY || s.env.GOOGLE_API_KEY);
+                if (hasKeys || s.status === 'active' || s.model) {
                     document.getElementById('welcome-view').classList.add('hidden');
                     document.getElementById('active-chat').classList.remove('hidden');
+                } else {
+                    document.getElementById('welcome-view').classList.remove('hidden');
+                    document.getElementById('active-chat').classList.add('hidden');
                 }
-            } catch (e) {}
+            } catch (e) {
+                // Fallback: if API fails, stay on welcome but allow manual launch
+                document.getElementById('welcome-view').classList.remove('hidden');
+            }
             initTerminals();
         }
 
+
         function initTerminals() {
-            mainTerm = new Terminal({ theme: { background: '#05050500', foreground: '#fff', cursor: '#10a37f' }, fontSize: 16, cursorBlink: true, fontFamily: 'Geist Mono' });
+            const isMobile = window.innerWidth < 640;
+            mainTerm = new Terminal({ theme: { background: '#05050500', foreground: '#fff', cursor: '#10a37f' }, fontSize: isMobile ? 12 : 16, cursorBlink: true, fontFamily: 'Geist Mono' });
             const fit = new FitAddon.FitAddon();
             mainTerm.loadAddon(fit);
             mainTerm.open(document.getElementById('terminal-chat-container'));
