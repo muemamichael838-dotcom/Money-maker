@@ -1,0 +1,71 @@
+127.0.0.1 - - [27/Jun/2026 17:31:21] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [27/Jun/2026 17:31:22] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:22] "GET /api/status HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:22] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:22] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:26] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:26] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:28] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:28] "GET /api/skills HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:29] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:29] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:32] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:32] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:35] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:35] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:38] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:38] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:41] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:41] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:44] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:44] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:47] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:47] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:50] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:50] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:53] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:53] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:31:56] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:31:56] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:36:21] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [27/Jun/2026 17:36:22] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:36:22] "GET /api/status HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:36:22] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:36:22] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:36:25] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:36:25] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:36:28] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:36:28] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:36:31] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:36:31] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:36:34] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:36:34] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:36:37] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:36:37] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:36:40] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:36:40] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:36:43] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:36:43] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:36:46] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:36:46] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:36:49] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:36:49] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:36:52] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:36:52] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:39:56] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [27/Jun/2026 17:39:56] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:39:56] "GET /api/status HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:39:57] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:39:57] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:40:00] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:40:00] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:40:00] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:40:00] "GET /api/skills HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:40:01] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:40:01] "GET /api/status HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:40:01] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:40:01] "GET /api/fs/list?path=undefined HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:40:03] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:40:03] "GET /api/pty?token= HTTP/1.1" 404 -
+127.0.0.1 - - [27/Jun/2026 17:40:06] code 404, message File not found
+127.0.0.1 - - [27/Jun/2026 17:40:06] "GET /api/pty?token= HTTP/1.1" 404 -
