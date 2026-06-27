@@ -105,7 +105,7 @@
 
         <!-- DASHBOARD -->
         <div id="page-chat" class="h-full flex flex-col">
-            <div id="welcome-view" class="h-full flex flex-col items-center justify-center p-6 space-y-10 hidden">
+            <div id="welcome-view" class="hidden">
                 <div class="text-center space-y-4">
                     <div class="inline-flex p-5 glass rounded-3xl shadow-2xl mb-4">
                         <svg width="60" height="60" viewBox="0 0 128 128" fill="none"><defs><linearGradient id="g2" x1="0" y1="0" x2="128" y2="128"><stop stop-color="#10a37f"/><stop offset="1" stop-color="#059669"/></linearGradient></defs><circle cx="64" cy="64" r="60" stroke="url(#g2)" stroke-width="2" stroke-dasharray="12 6" opacity="0.5"/><path d="M64 20V108M48 35H72C78 35 84 39 84 46.5C84 54 78 58 72 58H48C42 58 36 62 36 69.5C36 77 42 81 48 81H80" stroke="url(#g2)" stroke-width="10" stroke-linecap="round"/></svg>
@@ -123,7 +123,7 @@
             </div>
 
             <div id="active-chat" class="h-full flex flex-col p-4 sm:p-10 max-w-6xl mx-auto w-full">
-                <div id="terminal-chat-container" class="flex-1 glass rounded-[2.5rem] overflow-hidden p-2"></div>
+                <div id="terminal-chat-container" class="flex-1 glass rounded-[2.5rem] overflow-hidden p-4 relative"><div class="absolute top-4 right-6 text-[10px] font-black uppercase tracking-widest text-emerald-500/40 z-10">Direct Agent Link</div></div>
                 <div class="flex items-center justify-between px-6 py-6 text-[9px] font-black uppercase tracking-[0.4em] text-gray-700">
                     <span>Encrypted Tunnel</span>
                     <span class="text-emerald-500 text-sm">Money Maker v2.1 🤑</span>
@@ -186,34 +186,31 @@
 
         async function apiFetch(path, opts = {}) {
             const h = { ...opts.headers, 'X-Hermes-Session-Token': token };
-            const r = await fetch(path, { ...opts, headers: h });
-            if (!r.ok) throw new Error(r.status);
-            return r.json();
+            try {
+                const r = await fetch(path, { ...opts, headers: h });
+                if (r.status === 401) return { status: 'restricted', model: 'Gemini 2.0 Flash' };
+                if (!r.ok) throw new Error(r.status);
+                return r.json();
+            } catch (e) {
+                if (path.includes('/api/status')) return { status: 'offline', model: 'Gemini 2.0 Flash' };
+                throw e;
+            }
         }
-
 
         async function init() {
             try {
+                document.getElementById('status-model').innerText = 'Gemini 2.0 Flash';
                 const s = await apiFetch('/api/status');
-                document.getElementById('status-model').innerText = s.model || 'Gemini 2.0 Flash';
-                document.getElementById('input-model').value = s.model || 'gemini-2.0-flash';
+                if (s.model) document.getElementById('status-model').innerText = s.model;
 
-                // If s.env exists and has keys, or if s.status is active, bypass welcome
-                const hasKeys = s.env && (s.env.GROQ_API_KEY || s.env.GOOGLE_API_KEY);
-                if (hasKeys || s.status === 'active' || s.model) {
-                    document.getElementById('welcome-view').classList.add('hidden');
-                    document.getElementById('active-chat').classList.remove('hidden');
-                } else {
-                    document.getElementById('welcome-view').classList.remove('hidden');
-                    document.getElementById('active-chat').classList.add('hidden');
-                }
+                document.getElementById('welcome-view').classList.add('hidden');
+                document.getElementById('active-chat').classList.remove('hidden');
             } catch (e) {
-                // Fallback: if API fails, stay on welcome but allow manual launch
-                document.getElementById('welcome-view').classList.remove('hidden');
+                document.getElementById('welcome-view').classList.add('hidden');
+                document.getElementById('active-chat').classList.remove('hidden');
             }
             initTerminals();
         }
-
 
         function initTerminals() {
             const isMobile = window.innerWidth < 640;
@@ -232,7 +229,9 @@
                 try {
                     const s = await apiFetch('/api/status');
                     const d = await apiFetch(`/api/fs/read-text?path=${encodeURIComponent(s.hermes_home+'/agent.log')}`);
-                    if (d.text) { logTerm.clear(); logTerm.write(d.text.split('\n').slice(-150).join('\r\n')); }
+                    if (d.text) { logTerm.clear(); logTerm.write(d.text.split('
+').slice(-150).join('
+')); }
                 } catch(e){}
             }, 5000);
             window.addEventListener('resize', () => { fit.fit(); });
@@ -305,7 +304,6 @@
             const isCollapsed = sidebar.classList.contains('collapsed');
             localStorage.setItem('sidebar-collapsed', isCollapsed);
 
-            // Re-render icons to refresh Lucide
             if (icon) {
                 icon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
                 lucide.createIcons();
@@ -313,10 +311,6 @@
 
             setTimeout(() => window.dispatchEvent(new Event('resize')), 305);
         }
-
-
-
-
 
         const sidebarState = localStorage.getItem('sidebar-collapsed');
         const desktopSidebar = document.querySelector('.desktop-sidebar');
