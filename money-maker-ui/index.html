@@ -107,7 +107,7 @@
                 </div>
                 <div class="w-full max-w-md glass p-10 rounded-[2.5rem] space-y-6">
                     <div class="space-y-4">
-                        <div class="space-y-2"><label class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Model Cluster</label><select id="setup-model" class="w-full bg-white/5 border border-white/5 rounded-xl p-4 text-white outline-none focus:border-emerald-500 appearance-none"><option value="llama-3.1-70b-versatile">Groq: Llama 3.1 70B</option><option value="gemini-1.5-pro">Google: Gemini 1.5 Pro</option></select></div>
+                        <div class="space-y-2"><label class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Model Cluster</label><select id="setup-model" class="w-full bg-white/5 border border-white/5 rounded-xl p-4 text-white outline-none focus:border-emerald-500 appearance-none"><option value="llama-3.1-70b-versatile">Groq: Llama 3.1 70B</option><option value="gemini-2.0-flash" selected>Google: Gemini 2.0 Flash</option></select></div>
                         <div class="space-y-2"><label class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Master Key Pool</label><input type="password" id="setup-groq" class="w-full bg-white/5 border border-white/5 rounded-xl p-4 outline-none text-white focus:border-emerald-500" placeholder="Required for activation"></div>
                     </div>
                     <button onclick="performInitialSetup()" class="w-full emerald-btn text-white font-black py-5 rounded-2xl flex items-center justify-center gap-3"><i data-lucide="power" class="w-5 h-5"></i> Launch System</button>
@@ -186,8 +186,8 @@
         async function init() {
             try {
                 const s = await apiFetch('/api/status');
-                document.getElementById('status-model').innerText = s.model || 'Autonomous';
-                document.getElementById('input-model').value = s.model || '';
+                document.getElementById('status-model').innerText = s.model || 'Gemini 2.0 Flash';
+                document.getElementById('input-model').value = s.model || 'gemini-2.0-flash';
                 if (!s.env || !s.env.GROQ_API_KEY) {
                     document.getElementById('welcome-view').classList.remove('hidden');
                     document.getElementById('active-chat').classList.add('hidden');
@@ -298,9 +298,17 @@
         }
 
 
-        // Restore sidebar state
-        if (localStorage.getItem('sidebar-collapsed') === 'true') {
-            document.querySelector('.desktop-sidebar').classList.add('collapsed');
+
+        const sidebarState = localStorage.getItem('sidebar-collapsed');
+        const desktopSidebar = document.querySelector('.desktop-sidebar');
+        const toggleIcon = document.querySelector('.sidebar-toggle-btn i');
+
+        if (sidebarState === 'true' || sidebarState === null) {
+            desktopSidebar.classList.add('collapsed');
+            if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-right');
+            localStorage.setItem('sidebar-collapsed', 'true');
+        } else {
+            if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-left');
         }
 
         init();
