@@ -1,5 +1,5 @@
 #!/bin/bash
-# Money Maker Agent 🤑 - Ultimate Build v12.0
+# Money Maker Agent 🤑 - Ultimate Build v13.0
 set -u
 
 echo "--- MONEY MAKER SECURITY BYPASS BOOT ---"
@@ -36,21 +36,23 @@ node "${APP_DIR}/health-server.js" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/health-
 PYTHON_BIN="/opt/hermes/.venv/bin/python"
 [ ! -f "$PYTHON_BIN" ] && PYTHON_BIN=$(which python3)
 
-# 3. Start Multi-Layer API Proxy
+# 3. Start Multi-Layer API Proxy (Port 8000)
 $PYTHON_BIN "${APP_DIR}/api_proxy.py" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/api_proxy.log" &
 
-# 4. Launch Money Maker Control Center
+# 4. Start Chat Bridge (Port 8642)
+$PYTHON_BIN "${APP_DIR}/chat_bridge.py" 2>&1 | tee -a "$MONEY_MAKER_HOME/logs/chat_bridge.log" &
+
+# 5. Launch Money Maker Control Center (Port 9119)
 echo "Launching Money Maker Control Center..."
 {
     $PYTHON_BIN -m hermes_cli.main dashboard --host 127.0.0.1 --port 9119 --insecure
 } >> "$MONEY_MAKER_HOME/logs/dashboard.log" 2>&1 &
 
-# 5. Support Services
+# 6. Support Services
 $PYTHON_BIN "${APP_DIR}/cron_manager.py" > "$MONEY_MAKER_HOME/logs/cron_manager.log" 2>&1 &
 $PYTHON_BIN "${APP_DIR}/render_keepalive.py" > "$MONEY_MAKER_HOME/logs/keepalive.log" 2>&1 &
-$PYTHON_BIN "${APP_DIR}/skills/telegram_bot.py" > "$MONEY_MAKER_HOME/logs/telegram.log" 2>&1 &
 
-# 6. AI Gateway Loop
+# 7. AI Gateway Loop
 export API_SERVER_PORT=8642
 export OPENAI_BASE_URL="http://127.0.0.1:8000/v1"
 
