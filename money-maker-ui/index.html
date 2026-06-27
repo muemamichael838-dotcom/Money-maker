@@ -21,19 +21,27 @@
         .pulse-emerald { animation: pulse 2s infinite; }
         @media (max-width: 640px) { .desktop-sidebar, .tablet-sidebar { display: none; } .mobile-nav { display: flex; } .main-view { padding-bottom: 90px; } }
         @media (min-width: 641px) and (max-width: 1024px) { .desktop-sidebar, .mobile-nav { display: none; } .tablet-sidebar { display: flex; } }
-        @media (min-width: 1025px) { .desktop-sidebar { display: flex; } .tablet-sidebar, .mobile-nav { display: none; } }
-        .xterm-viewport::-webkit-scrollbar { width: 4px; }
-        .xterm-viewport::-webkit-scrollbar-thumb { background: #222; border-radius: 4px; }
-         .tablet-sidebar { display: flex !important; width: 4rem; } }
-
-        .desktop-sidebar.collapsed + main
-
 
         @media (min-width: 1025px) {
-            .desktop-sidebar { display: flex; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; width: 18rem; }
-            .desktop-sidebar.collapsed { width: 0; padding-left: 0; padding-right: 0; border-right: none; }
-            .tablet-sidebar { display: flex !important; width: 4.5rem; border-right: 1px solid rgba(255,255,255,0.05); }
+            .desktop-sidebar {
+                display: flex !important;
+                width: 18rem;
+                min-width: 18rem;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                overflow: hidden;
+                white-space: nowrap;
+            }
+            .desktop-sidebar.collapsed {
+                width: 0 !important;
+                min-width: 0 !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                border-right: none !important;
+                opacity: 0;
+            }
+            .tablet-sidebar { display: flex !important; width: 4.5rem; }
         }
+
         .sidebar-toggle-btn {
             position: absolute;
             left: 1.25rem;
@@ -65,7 +73,7 @@
     </aside>
 
     <!-- DESKTOP SIDEBAR -->
-    <aside class="desktop-sidebar w-72 h-full bg-[#0c0c0e] border-r border-white/5 flex flex-col p-6 z-30">
+    <aside class="desktop-sidebar collapsed h-full bg-[#0c0c0e] border-r border-white/5 flex flex-col p-6 z-30">
         <div class="flex items-center gap-3 mb-10 px-2">
             <svg width="28" height="28" viewBox="0 0 128 128" fill="none"><defs><linearGradient id="g1" x1="0" y1="0" x2="128" y2="128"><stop stop-color="#10a37f"/><stop offset="1" stop-color="#059669"/></linearGradient></defs><circle cx="64" cy="64" r="60" stroke="url(#g1)" stroke-width="2" stroke-dasharray="8 4" opacity="0.4"/><path d="M64 20V108M48 35H72C78 35 84 39 84 46.5C84 54 78 58 72 58H48C42 58 36 62 36 69.5C36 77 42 81 48 81H80" stroke="url(#g1)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <div>
@@ -299,17 +307,21 @@
 
 
 
+
+
         const sidebarState = localStorage.getItem('sidebar-collapsed');
         const desktopSidebar = document.querySelector('.desktop-sidebar');
         const toggleIcon = document.querySelector('.sidebar-toggle-btn i');
 
-        if (sidebarState === 'true' || sidebarState === null) {
+        if (sidebarState === 'false') {
+            desktopSidebar.classList.remove('collapsed');
+            if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-left');
+        } else {
             desktopSidebar.classList.add('collapsed');
             if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-right');
             localStorage.setItem('sidebar-collapsed', 'true');
-        } else {
-            if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-left');
         }
+        lucide.createIcons();
 
         init();
     </script>
