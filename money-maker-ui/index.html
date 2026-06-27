@@ -24,9 +24,45 @@
         @media (min-width: 1025px) { .desktop-sidebar { display: flex; } .tablet-sidebar, .mobile-nav { display: none; } }
         .xterm-viewport::-webkit-scrollbar { width: 4px; }
         .xterm-viewport::-webkit-scrollbar-thumb { background: #222; border-radius: 4px; }
+         .tablet-sidebar { display: flex !important; width: 4rem; } }
+
+        .desktop-sidebar.collapsed + main
+
+
+        @media (min-width: 1025px) {
+            .desktop-sidebar { display: flex; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; width: 18rem; }
+            .desktop-sidebar.collapsed { width: 0; padding-left: 0; padding-right: 0; border-right: none; }
+            .tablet-sidebar { display: flex !important; width: 4.5rem; border-right: 1px solid rgba(255,255,255,0.05); }
+        }
+        .sidebar-toggle-btn {
+            position: absolute;
+            left: 1.25rem;
+            bottom: 2rem;
+            z-index: 60;
+            cursor: pointer;
+            transition: transform 0.3s;
+            background: rgba(255,255,255,0.03);
+            border: 0.5px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-toggle-btn:hover { background: rgba(255,255,255,0.08); }
+        .desktop-sidebar.collapsed + main .sidebar-toggle-btn { transform: rotate(180deg); }
+
     </style>
 </head>
 <body class="h-screen flex">
+
+    <!-- TABLET SIDEBAR -->
+    <aside class="tablet-sidebar w-16 h-full bg-[#0c0c0e] border-r border-white/5 flex flex-col items-center py-6 z-30">
+        <svg width="24" height="24" viewBox="0 0 128 128" fill="none" class="mb-10"><path d="M64 20V108M48 35H72C78 35 84 39 84 46.5C84 54 78 58 72 58H48C42 58 36 62 36 69.5C36 77 42 81 48 81H80" stroke="#10a37f" stroke-width="12" stroke-linecap="round"/></svg>
+        <div class="flex-1 space-y-4">
+            <button onclick="showPage('chat')" class="p-3 text-gray-500"><i data-lucide="layout-grid" class="w-6 h-6"></i></button>
+            <button onclick="showPage('skills')" class="p-3 text-gray-500"><i data-lucide="zap" class="w-6 h-6"></i></button>
+            <button onclick="showPage('files')" class="p-3 text-gray-500"><i data-lucide="folder" class="w-6 h-6"></i></button>
+            <button onclick="showPage('logs')" class="p-3 text-gray-500"><i data-lucide="activity" class="w-6 h-6"></i></button>
+            <button onclick="showPage('api')" class="p-3 text-gray-500"><i data-lucide="shield" class="w-6 h-6"></i></button>
+        </div>
+        <button onclick="toggleSidebar()" class="sidebar-toggle-btn hidden lg:flex p-3 rounded-2xl text-gray-500 hover:text-emerald-500"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+    </aside>
 
     <!-- DESKTOP SIDEBAR -->
     <aside class="desktop-sidebar w-72 h-full bg-[#0c0c0e] border-r border-white/5 flex flex-col p-6 z-30">
@@ -55,20 +91,9 @@
         </div>
     </aside>
 
-    <!-- TABLET SIDEBAR -->
-    <aside class="tablet-sidebar w-16 h-full bg-[#0c0c0e] border-r border-white/5 flex flex-col items-center py-6 z-30">
-        <svg width="24" height="24" viewBox="0 0 128 128" fill="none" class="mb-10"><path d="M64 20V108M48 35H72C78 35 84 39 84 46.5C84 54 78 58 72 58H48C42 58 36 62 36 69.5C36 77 42 81 48 81H80" stroke="#10a37f" stroke-width="12" stroke-linecap="round"/></svg>
-        <div class="flex-1 space-y-4">
-            <button onclick="showPage('chat')" class="p-3 text-gray-500"><i data-lucide="layout-grid" class="w-6 h-6"></i></button>
-            <button onclick="showPage('skills')" class="p-3 text-gray-500"><i data-lucide="zap" class="w-6 h-6"></i></button>
-            <button onclick="showPage('files')" class="p-3 text-gray-500"><i data-lucide="folder" class="w-6 h-6"></i></button>
-            <button onclick="showPage('logs')" class="p-3 text-gray-500"><i data-lucide="activity" class="w-6 h-6"></i></button>
-            <button onclick="showPage('api')" class="p-3 text-gray-500"><i data-lucide="shield" class="w-6 h-6"></i></button>
-        </div>
-    </aside>
-
     <!-- MAIN VIEW -->
     <main class="flex-1 h-full overflow-hidden relative main-view">
+
 
         <!-- DASHBOARD -->
         <div id="page-chat" class="h-full flex flex-col">
@@ -254,6 +279,30 @@
         }
 
         function clearLogs() { if(logTerm) logTerm.clear(); }
+
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.desktop-sidebar');
+            const icon = document.querySelector('.sidebar-toggle-btn i');
+            sidebar.classList.toggle('collapsed');
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            localStorage.setItem('sidebar-collapsed', isCollapsed);
+
+            // Re-render icons to refresh Lucide
+            if (icon) {
+                icon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
+                lucide.createIcons();
+            }
+
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 305);
+        }
+
+
+        // Restore sidebar state
+        if (localStorage.getItem('sidebar-collapsed') === 'true') {
+            document.querySelector('.desktop-sidebar').classList.add('collapsed');
+        }
+
         init();
     </script>
 </body>
