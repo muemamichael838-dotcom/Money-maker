@@ -1,26 +1,38 @@
 import os
+import inspect
+from persistence_manager import PersistenceManager
 
-def create_new_skill(name, code):
-    """Creates a new skill file."""
+pm = PersistenceManager()
+
+def write_neural_module(name, code):
+    """
+    Empowers the Money Maker to expand its own codebase.
+    Saves a new skill module in the skills/ directory.
+    """
+    try:
+        if not name.endswith(".py"):
+            name += ".py"
+
+        skills_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(skills_dir, name)
+
+        # Security check: Prevent overwriting core utils
+        if "utils/" in name or "persistence_manager" in name:
+            return "ERROR: Access Denied to Core Kernel."
+
+        with open(file_path, "w") as f:
+            f.write(code)
+
+        pm.log("INFO", f"Neural Module Created: {name}", {"path": file_path})
+        return f"SUCCESS: Module '{name}' successfully integrated into the Skill Set."
+    except Exception as e:
+        pm.log("ERROR", f"Neural Module Creation Failed: {str(e)}")
+        return f"ERROR: Expansion failed - {str(e)}"
+
+def list_neural_modules():
+    """Lists all current modules in the skill set."""
     skills_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(skills_dir, f"{name}.py")
-    with open(file_path, "w") as f:
-        f.write(code)
-    return f"Skill {name} created at {file_path}"
-
-def delete_skill(name, confirmed=False):
-    """Deletes a skill file. Requires explicit user confirmation."""
-    if not confirmed:
-        return "ERROR: Deletion requires human-in-the-loop confirmation. Please set 'confirmed=True'."
-
-    skills_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(skills_dir, f"{name}.py")
-
-    if os.path.exists(file_path):
-        os.remove(file_path)
-        return f"SUCCESS: Skill {name} has been deleted."
-    else:
-        return f"ERROR: Skill {name} not found."
+    return [f for f in os.listdir(skills_dir) if f.endswith(".py") and f != "__init__.py"]
 
 if __name__ == "__main__":
-    print(delete_skill("test_skill", confirmed=False))
+    print(list_neural_modules())

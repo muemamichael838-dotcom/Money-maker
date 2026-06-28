@@ -1,18 +1,32 @@
 import subprocess
 import os
 
-def execute_command(command):
-    """Executes a bash command with root-level access in the container."""
+def run_system_command(command, use_sudo=True):
+    """
+    Executes a shell command with root access inside the Docker space.
+    """
     try:
-        # We are running as root by default or have passwordless sudo
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=30)
+        # Docker spaces usually run as root or allow sudo NOPASSWD
+        prefix = "sudo " if use_sudo and os.getuid() != 0 else ""
+        full_cmd = f"{prefix}{command}"
+
+        result = subprocess.run(
+            full_cmd,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+
         return {
             "stdout": result.stdout,
             "stderr": result.stderr,
-            "code": result.returncode
+            "exit_code": result.returncode
         }
     except Exception as e:
         return {"error": str(e)}
 
 if __name__ == "__main__":
-    print(execute_command("id"))
+    import sys
+    cmd = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "id"
+    print(run_system_command(cmd))

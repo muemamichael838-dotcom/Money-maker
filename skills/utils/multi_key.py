@@ -1,34 +1,42 @@
+import os
+import random
 from persistence_manager import PersistenceManager
+
+pm = PersistenceManager()
 
 class MultiKeyManager:
     def __init__(self, env_var_name):
         self.env_var_name = env_var_name
-        self.pm = PersistenceManager()
+        self.keys = []
+        self._refresh_keys()
+
+    def _refresh_keys(self):
+        # Get from env
+        env_keys = os.environ.get(self.env_var_name, "").split(",")
+        # Get from persistent memory
+        saved_settings = pm.get_memory("api_settings") or {}
+
+        # Mapping env var names to settings keys
+        mapping = {
+            "GROQ_API_KEYS": "groq",
+            "HUGGINGFACE_API_KEYS": "hf",
+            "GOOGLE_API_KEYS": "google",
+            "ODDS_API_KEYS": "odds"
+        }
+
+        setting_key = mapping.get(self.env_var_name)
+        saved_keys = []
+        if setting_key and setting_key in saved_settings:
+            saved_keys = saved_settings[setting_key].split(",")
+
+        self.keys = [k.strip() for k in (env_keys + saved_keys) if k.strip()]
 
     def get_key(self):
-        # Prefer DB-stored key if exists
-        stored = self.pm.get_memory(f"key_{self.env_var_name}")
-        if stored: return stored
-
-        # Fallback to env
-        import os
-        keys = os.environ.get(self.env_var_name, "").split(",")
-        return keys[0] if keys else None
+        self._refresh_keys()
+        if not self.keys:
+            return None
+        return random.choice(self.keys)
 
     def rotate_on_error(self):
-        import os
-        keys = os.environ.get(self.env_var_name, "").split(",")
-        if len(keys) > 1:
-            # Shift the list in memory if possible or just log it
-            self.pm.log("WARNING", f"Rotating keys for {self.env_var_name}")
-            # Simple rotation logic: store next key in DB
-            current = self.get_key()
-            try:
-                idx = keys.index(current)
-                next_key = keys[(idx + 1) % len(keys)]
-                self.pm.save_memory(f"key_{self.env_var_name}", next_key)
-            except ValueError:
-                self.pm.save_memory(f"key_{self.env_var_name}", keys[0])
-
-if __name__ == "__main__":
-    print("Multi-key manager ready.")
+        """Logic for manual rotation if needed by a skill."""
+        self._refresh_keys()

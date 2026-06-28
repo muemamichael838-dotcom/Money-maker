@@ -2,27 +2,39 @@ import os
 import json
 import random
 import requests
+import time
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
+from persistence_manager import PersistenceManager
 
 app = FastAPI()
+pm = PersistenceManager()
+
+# Global state for key rotation to ensure we don't just keep picking the same failed key
+ROTATION_STATE = {}
 
 def get_pools():
-    # Supports both singular (comma separated) and plural env vars
+    """
+    Retrieves API key pools from environment variables and persistence.
+    Supports comma-separated strings.
+    """
     pools = {
-        "groq": (os.environ.get("GROQ_API_KEYS") or os.environ.get("GROQ_API_KEY") or "").split(","),
-        "huggingface": (os.environ.get("HUGGINGFACE_API_KEYS") or os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY") or "").split(","),
-        "google": (os.environ.get("GOOGLE_API_KEYS") or os.environ.get("GOOGLE_API_KEY") or "").split(","),
-        "openai": (os.environ.get("OPENAI_API_KEYS") or os.environ.get("OPENAI_API_KEY") or "").split(","),
-        "anthropic": (os.environ.get("ANTHROPIC_API_KEYS") or os.environ.get("ANTHROPIC_API_KEY") or "").split(","),
+        "groq": (os.environ.get("GROQ_API_KEYS") or "").split(","),
+        "huggingface": (os.environ.get("HUGGINGFACE_API_KEYS") or "").split(","),
+        "google": (os.environ.get("GOOGLE_API_KEYS") or "").split(","),
     }
-    # Clean and filter
+
+    # Layer in values from Persistence (Settings) saved via UI
+    saved_settings = pm.get_memory("api_settings") or {}
+    if "groq" in saved_settings: pools["groq"].extend(saved_settings["groq"].split(","))
+    if "hf" in saved_settings: pools["huggingface"].extend(saved_settings["hf"].split(","))
+    if "google" in saved_settings: pools["google"].extend(saved_settings["google"].split(","))
+
+    # Clean, trim, and filter empty strings
     for p in pools:
         pools[p] = [k.strip() for k in pools[p] if k.strip()]
     return pools
-
-KEY_POOLS = get_pools()
 
 PROVIDERS = {
     "groq": {
@@ -36,103 +48,90 @@ PROVIDERS = {
     "google": {
         "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
         "header_type": "Bearer"
-    },
-    "openai": {
-        "url": "https://api.openai.com/v1/chat/completions",
-        "header_type": "Bearer"
-    },
-    "anthropic": {
-        "url": "https://api.anthropic.com/v1/messages",
-        "header_type": "x-api-key"
     }
 }
 
-def get_next_key(provider):
-    # Refresh pools to pick up live env changes if any
-    pools = get_pools()
-    pool = pools.get(provider, [])
-    if not pool:
-        return None
-    # We rotate using a simple global index or just random for now to handle statelessness better
-    return random.choice(pool)
+def select_key(provider, pool):
+    """Selects a key from the pool, implementing basic round-robin via rotation state."""
+    if not pool: return None
 
-@app.get("/")
+    if provider not in ROTATION_STATE:
+        ROTATION_STATE[provider] = 0
+    else:
+        ROTATION_STATE[provider] = (ROTATION_STATE[provider] + 1) % len(pool)
+
+    return pool[ROTATION_STATE[provider]]
+
 @app.get("/health")
 async def health():
     pools = get_pools()
-    return {"status": "proxy_online", "active_providers": {p: len(v) for p, v in pools.items() if v}}
+    active = {p: len(v) for p, v in pools.items() if v}
+    return {
+        "status": "online",
+        "engine": "Money Maker Multi-Key Proxy",
+        "active_pools": active
+    }
 
 @app.post("/v1/chat/completions")
 async def chat_completions(request: Request):
-    try:
-        body = await request.json()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON body")
-
+    body = await request.json()
     model = body.get("model", "").lower()
 
-    provider = "openai"
-    if "groq" in model: provider = "groq"
-    elif "huggingface" in model or "hf" in model: provider = "huggingface"
-    elif "google" in model or "gemini" in model: provider = "google"
-    elif "claude" in model: provider = "anthropic"
+    # Determine provider based on model string
+    provider = "groq"
+    if any(x in model for x in ["hf-", "huggingface", "llama-3-70b-instruct"]):
+        provider = "huggingface"
+    elif any(x in model for x in ["gemini", "google"]):
+        provider = "google"
+    elif "groq" in model:
+        provider = "groq"
 
     config = PROVIDERS.get(provider)
     if not config:
-        raise HTTPException(status_code=400, detail=f"Unsupported provider for model: {model}")
+        # Fallback to groq as default if ambiguous
+        provider = "groq"
+        config = PROVIDERS["groq"]
 
-    target_url = config["url"]
-    if "{model}" in target_url:
-        target_url = target_url.format(model=body.get("model"))
+    target_url = config["url"].format(model=body.get("model")) if "{model}" in config["url"] else config["url"]
 
-    # Determine retry count based on pool size
-    pool = get_pools().get(provider, [])
-    max_retries = max(len(pool), 3) # At least 3 retries
-    last_error = "Unknown error"
+    pools = get_pools()
+    pool = pools.get(provider, [])
 
-    # Keep track of used keys in this request to avoid immediate reuse on failure
-    tried_keys = set()
+    if not pool:
+        pm.log("ERROR", f"No API keys available for provider: {provider}")
+        raise HTTPException(status_code=400, detail=f"No API keys configured for {provider}")
 
-    for _ in range(max_retries):
-        api_key = get_next_key(provider)
-        if not api_key:
-            last_error = f"No API key found for {provider}"
-            break
+    last_error = ""
+    # Try up to the total number of keys in the pool + 1 (for good measure)
+    max_tries = min(len(pool) * 2, 5)
 
-        if api_key in tried_keys and len(tried_keys) < len(pool):
-            continue
-
-        tried_keys.add(api_key)
-
-        headers = {"Content-Type": "application/json"}
-        if config["header_type"] == "Bearer":
-            headers["Authorization"] = f"Bearer {api_key}"
-        else:
-            headers[config["header_type"]] = api_key
-            if provider == "anthropic":
-                headers["anthropic-version"] = "2023-06-01"
+    for attempt in range(max_tries):
+        api_key = select_key(provider, pool)
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
 
         try:
-            response = requests.post(
-                target_url,
-                headers=headers,
-                json=body,
-                timeout=60
-            )
+            start_time = time.time()
+            response = requests.post(target_url, headers=headers, json=body, timeout=60)
+            duration = time.time() - start_time
 
             if response.status_code == 200:
+                pm.log("DEBUG", f"Request successful via {provider} ({duration:.2f}s)")
                 return response.json()
 
-            # Handle rate limits or key errors
+            # If 401/403 or 429, we definitely want to rotate
+            pm.log("WARN", f"Key failure on {provider} (Status {response.status_code}). Rotating...")
             last_error = f"Status {response.status_code}: {response.text}"
-            print(f"Provider {provider} failed with {response.status_code}. Rotating...")
 
         except Exception as e:
+            pm.log("ERROR", f"Request exception on {provider}: {str(e)}")
             last_error = str(e)
-            print(f"Request to {provider} failed: {e}. Rotating...")
             continue
 
-    raise HTTPException(status_code=500, detail=f"All keys for {provider} failed. Last error: {last_error}")
+    pm.log("CRITICAL", f"All key rotation attempts failed for {provider}. Last error: {last_error}")
+    raise HTTPException(status_code=500, detail=f"Neural failure: All available keys for {provider} are exhausted or invalid. Details: {last_error}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

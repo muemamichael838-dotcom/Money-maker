@@ -1,5 +1,0 @@
-127.0.0.1 - - [27/Jun/2026 19:25:25] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [27/Jun/2026 19:25:26] code 404, message File not found
-127.0.0.1 - - [27/Jun/2026 19:25:26] "GET /api/pty?token= HTTP/1.1" 404 -
-127.0.0.1 - - [27/Jun/2026 19:25:29] code 501, message Unsupported method ('POST')
-127.0.0.1 - - [27/Jun/2026 19:25:29] "POST /api/chat HTTP/1.1" 501 -

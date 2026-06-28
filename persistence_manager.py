@@ -1,22 +1,34 @@
 import os
 import json
 import sqlite3
-import psycopg2
+import time
 from urllib.parse import urlparse
+
+# Optional Postgres support
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor, Json
+    HAS_POSTGRES = True
+except ImportError:
+    HAS_POSTGRES = False
 
 class PersistenceManager:
     def __init__(self):
+        # We prefer DATABASE_URL (Supabase/Neon/Render)
         self.db_url = os.environ.get("DATABASE_URL")
         self.conn = None
+        self.db_type = "sqlite"
 
-        if self.db_url:
+        if self.db_url and HAS_POSTGRES:
             try:
                 self._use_postgres()
-                print("Using Postgres backend for persistence.")
+                print("--- [PERSISTENCE] Linked to External Neural Database (Postgres) ---")
             except Exception as e:
-                print(f"Failed to connect to Postgres: {e}. Falling back to SQLite.")
+                print(f"--- [PERSISTENCE] Postgres Link Failed: {e}. Falling back to Local SQLite. ---")
                 self._use_sqlite()
         else:
+            if self.db_url and not HAS_POSTGRES:
+                print("--- [PERSISTENCE] Postgres requested but psycopg2 missing. Using SQLite. ---")
             self._use_sqlite()
 
         self._init_db()
@@ -26,34 +38,46 @@ class PersistenceManager:
         self.db_type = "postgres"
 
     def _use_sqlite(self):
-        sqlite_path = os.path.join(os.environ.get("MONEY_MAKER_HOME", "/opt/data"), "memory.db")
+        # Default home in /opt/data for persistence across Docker restarts in Hugging Face Spaces (if mapped)
+        home = os.environ.get("MONEY_MAKER_HOME", "/opt/data")
+        sqlite_path = os.path.join(home, "memory.db")
         os.makedirs(os.path.dirname(sqlite_path), exist_ok=True)
         self.conn = sqlite3.connect(sqlite_path, check_same_thread=False)
         self.conn.execute("PRAGMA journal_mode=WAL")
         self.db_type = "sqlite"
-        print(f"Using SQLite backend at {sqlite_path}")
 
     def _init_db(self):
         cur = self.conn.cursor()
         if self.db_type == "postgres":
+            # Neural Logs - Supabase/Postgres
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS logs (
                     id SERIAL PRIMARY KEY,
-                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                     level TEXT,
                     message TEXT,
                     metadata JSONB
                 );
             """)
+            # Persistent Memory - Supabase/Postgres
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS memory (
                     id SERIAL PRIMARY KEY,
                     key TEXT UNIQUE,
                     value JSONB,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+            # Session Tracking
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS sessions (
+                    session_id TEXT PRIMARY KEY,
+                    data JSONB,
+                    last_active TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 );
             """)
         else:
+            # Neural Logs - SQLite
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,6 +87,7 @@ class PersistenceManager:
                     metadata TEXT
                 );
             """)
+            # Persistent Memory - SQLite
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS memory (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,43 +96,57 @@ class PersistenceManager:
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 );
             """)
+            # Session Tracking - SQLite
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS sessions (
+                    session_id TEXT PRIMARY KEY,
+                    data TEXT,
+                    last_active DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
         self.conn.commit()
 
     def log(self, level, message, metadata=None):
-        print(f"[{level}] {message}")
         try:
             cur = self.conn.cursor()
-            meta = json.dumps(metadata) if metadata else None
+            meta_str = json.dumps(metadata) if metadata else None
+
             if self.db_type == "postgres":
-                cur.execute("INSERT INTO logs (level, message, metadata) VALUES (%s, %s, %s)",
-                            (level, message, meta))
+                from psycopg2.extras import Json
+                cur.execute(
+                    "INSERT INTO logs (level, message, metadata) VALUES (%s, %s, %s)",
+                    (level, message, Json(metadata) if metadata else None)
+                )
             else:
-                cur.execute("INSERT INTO logs (level, message, metadata) VALUES (?, ?, ?)",
-                            (level, message, meta))
+                cur.execute(
+                    "INSERT INTO logs (level, message, metadata) VALUES (?, ?, ?)",
+                    (level, message, meta_str)
+                )
             self.conn.commit()
-            # Also write to local log file for UI access
-            log_file = os.path.join(os.environ.get("MONEY_MAKER_HOME", "/opt/data"), "agent.log")
-            with open(log_file, "a") as f:
-                f.write(f"[{level}] {message}\n")
+
+            # Write to local file as secondary backup
+            home = os.environ.get("MONEY_MAKER_HOME", "/opt/data")
+            with open(os.path.join(home, "agent.log"), "a") as f:
+                f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] [{level}] {message}\n")
         except Exception as e:
-            print(f"Logging error: {e}")
+            print(f"Logging Sync Error: {e}")
 
     def save_memory(self, key, value):
         try:
             cur = self.conn.cursor()
-            val_str = json.dumps(value)
             if self.db_type == "postgres":
+                from psycopg2.extras import Json
                 cur.execute("""
                     INSERT INTO memory (key, value, updated_at) VALUES (%s, %s, CURRENT_TIMESTAMP)
                     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP
-                """, (key, val_str))
+                """, (key, Json(value)))
             else:
                 cur.execute("""
                     INSERT OR REPLACE INTO memory (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
-                """, (key, val_str))
+                """, (key, json.dumps(value)))
             self.conn.commit()
         except Exception as e:
-            print(f"Memory save error: {e}")
+            print(f"Memory Sync Error: {e}")
 
     def get_memory(self, key):
         try:
@@ -118,11 +157,29 @@ class PersistenceManager:
                 cur.execute("SELECT value FROM memory WHERE key = ?", (key,))
             row = cur.fetchone()
             if row:
-                return json.loads(row[0]) if isinstance(row[0], str) else row[0]
+                res = row[0]
+                return json.loads(res) if isinstance(res, str) else res
         except Exception:
             pass
         return None
 
+    def save_session(self, session_id, data):
+        try:
+            cur = self.conn.cursor()
+            if self.db_type == "postgres":
+                from psycopg2.extras import Json
+                cur.execute("""
+                    INSERT INTO sessions (session_id, data, last_active) VALUES (%s, %s, CURRENT_TIMESTAMP)
+                    ON CONFLICT (session_id) DO UPDATE SET data = EXCLUDED.data, last_active = CURRENT_TIMESTAMP
+                """, (session_id, Json(data)))
+            else:
+                cur.execute("""
+                    INSERT OR REPLACE INTO sessions (session_id, data, last_active) VALUES (?, ?, CURRENT_TIMESTAMP)
+                """, (session_id, json.dumps(data)))
+            self.conn.commit()
+        except Exception as e:
+            print(f"Session Sync Error: {e}")
+
 if __name__ == "__main__":
     pm = PersistenceManager()
-    pm.log("INFO", "Persistence Initialized")
+    pm.log("INFO", "Neural Persistence Link Verified.")
