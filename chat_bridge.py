@@ -5,8 +5,10 @@ import asyncio
 import json
 import os
 import uuid
+from persistence_manager import PersistenceManager
 
 app = FastAPI()
+pm = PersistenceManager()
 
 app.add_middleware(
     CORSMiddleware,
@@ -49,6 +51,15 @@ async def chat(request: Request):
         return {"response": stdout.decode().strip(), "status": "success"}
     except Exception as e:
         return {"response": f"Gateway Error: {str(e)}", "status": "error"}
+
+@app.post("/api/settings")
+async def save_settings(request: Request):
+    try:
+        body = await request.json()
+        pm.save_memory("api_settings", body)
+        return {"status": "success", "message": "Settings saved"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/sessions")
 async def list_sessions():

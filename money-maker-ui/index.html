@@ -34,7 +34,8 @@
             .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 90; }
             .sidebar-overlay.active { display: block; }
             .main-view { width: 100vw !important; }
-            .input-container-mobile { padding-bottom: 5.5rem; }
+            .input-container-mobile { position: fixed; bottom: 8rem; left: 0; right: 0; z-index: 40; padding-bottom: 0; background: transparent; }
+            #chat-messages { padding-bottom: 15rem !important; }
         }
 
         .custom-scrollbar::-webkit-scrollbar { width: 5px; }
