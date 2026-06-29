@@ -1,19 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Money Maker 🤑 | Neural Interface</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Money Maker 🤑 | Neural Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #09090b; --emerald: #10a37f; --emerald-glow: rgba(16, 163, 127, 0.3); --border: rgba(255,255,255,0.06); }
-        body { background: var(--bg); color: #ececec; font-family: 'Geist', sans-serif; overflow: hidden; height: 100vh; display: flex; }
+        :root { --emerald: #10a37f; --emerald-glow: rgba(16, 163, 127, 0.4); --border: rgba(255,255,255,0.08); }
+        * { font-family: 'Geist', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: #050505; color: #a1a1aa; overflow: hidden; height: 100vh; width: 100vw; }
+
         .glass { background: rgba(255,255,255,0.02); backdrop-filter: blur(24px); border: 1px solid var(--border); }
         .sidebar-item.active { background: rgba(16, 163, 127, 0.1); color: #fff; border-left: 2px solid var(--emerald); }
         .emerald-btn { background: var(--emerald); box-shadow: 0 0 20px var(--emerald-glow); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
@@ -34,7 +36,10 @@
             .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 90; }
             .sidebar-overlay.active { display: block; }
             .main-view { width: 100vw !important; }
-            .input-container-mobile { padding-bottom: 5.5rem; }
+            /* Repositioned Chat Bar: Above Mobile Nav */
+            .input-container-mobile { position: fixed; bottom: 8.5rem; left: 1.5rem; right: 1.5rem; z-index: 40; padding: 0; background: transparent; }
+            #chat-messages { padding-bottom: 16rem !important; }
+            .mobile-nav { bottom: 2rem !important; }
         }
 
         .custom-scrollbar::-webkit-scrollbar { width: 5px; }
@@ -54,18 +59,20 @@
         .markdown-body code { background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; font-family: 'Geist Mono', monospace; font-size: 0.9em; color: var(--emerald); }
     </style>
 </head>
-<body class="flex selection:bg-emerald-500/30">
+<body class="flex overflow-hidden">
 
-    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar(false)" aria-hidden="true"></div>
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
 
     <!-- SIDEBAR -->
-    <aside id="main-sidebar" class="desktop-sidebar h-full bg-[#0c0c0e] border-r border-white/5 flex flex-col p-6 overflow-y-auto custom-scrollbar transition-all">
-        <div class="flex items-center justify-between mb-10 px-2">
+    <aside id="main-sidebar" class="desktop-sidebar w-[320px] glass h-screen flex flex-col p-8 z-50">
+        <div class="flex items-center justify-between mb-12">
             <div class="flex items-center gap-3">
-                <svg width="32" height="32" viewBox="0 0 128 128" fill="none"><defs><linearGradient id="g1" x1="0" y1="0" x2="128" y2="128"><stop stop-color="#10a37f"/><stop offset="1" stop-color="#059669"/></linearGradient></defs><circle cx="64" cy="64" r="60" stroke="url(#g1)" stroke-width="2" stroke-dasharray="8 4" opacity="0.4"/><path d="M64 20V108M48 35H72C78 35 84 39 84 46.5C84 54 78 58 72 58H48C42 58 36 62 36 69.5C36 77 42 81 48 81H80" stroke="url(#g1)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div class="w-10 h-10 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(16,163,127,0.3)]">
+                    <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+                </div>
                 <div>
-                    <div class="text-base font-black text-white tracking-widest uppercase leading-tight">Money Maker</div>
-                    <div class="text-[10px] text-emerald-500 font-black uppercase tracking-[0.2em] mt-0.5">Neural Core</div>
+                    <h1 class="text-lg font-black text-white tracking-tighter uppercase leading-none">Money Maker</h1>
+                    <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Neural Ops v4.0</span>
                 </div>
             </div>
             <button onclick="toggleSidebar(false)" class="lg:hidden p-2 text-gray-500 hover:text-white" aria-label="Close Sidebar"><i data-lucide="x" class="w-6 h-6"></i></button>
@@ -83,19 +90,13 @@
         <div class="mt-auto space-y-4 pt-6 border-t border-white/5">
             <div class="text-[11px] font-black text-gray-600 uppercase tracking-[0.4em] px-2">History</div>
             <div id="session-list" class="space-y-1 max-h-[20vh] overflow-y-auto custom-scrollbar">
-                <p class="text-[10px] text-gray-700 italic px-4">No recent sessions.</p>
+                <!-- Session items -->
             </div>
-            <div class="glass rounded-2xl p-4 mt-6">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Core Active</span>
-                    <div class="w-2 h-2 rounded-full bg-emerald-500 pulse-emerald"></div>
-                </div>
-                <div id="model-display" class="text-xs text-gray-400 font-mono truncate">Groq-Llama-3-70B</div>
-            </div>
+            <button onclick="clearAllData()" class="w-full py-3 text-[10px] font-black uppercase tracking-[0.2em] text-red-500/50 hover:text-red-500 transition-colors">Purge Neural Core</button>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
+    <!-- MAIN VIEW -->
     <main class="flex-1 flex flex-col h-full overflow-hidden relative main-view bg-gradient-to-b from-[#09090b] to-[#050505]">
 
         <!-- HEADER -->
@@ -156,55 +157,56 @@
                         <p class="text-emerald-500 font-black uppercase tracking-[0.4em] text-xs">Linking Core PTY...</p>
                     </div>
                 </div>
-                <div class="absolute top-6 right-8 flex items-center gap-3 z-10">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-500/40">System Root</span>
-                    <div class="w-2 h-2 rounded-full bg-emerald-500 pulse-emerald"></div>
+            </div>
+        </div>
+
+        <!-- SKILLS / CAPABILITIES -->
+        <div id="page-skills" class="h-full hidden overflow-y-auto p-6 sm:p-16 page-transition custom-scrollbar">
+            <div class="max-w-5xl mx-auto space-y-12">
+                <div class="flex items-end justify-between">
+                    <div class="space-y-2">
+                        <span class="text-xs font-black text-emerald-500 uppercase tracking-[0.5em]">Capabilities</span>
+                        <h2 class="text-5xl font-black text-white tracking-tighter uppercase">Modular Skillset v1.2</h2>
+                    </div>
+                    <i data-lucide="zap" class="w-12 h-12 text-emerald-500 animate-pulse"></i>
+                </div>
+                <div id="skills-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Skills loading -->
                 </div>
             </div>
         </div>
 
-        <!-- SKILLS PAGE -->
-        <div id="page-skills" class="h-full hidden overflow-y-auto p-8 sm:p-20 page-transition">
-            <div class="max-w-6xl mx-auto">
-                <h1 class="text-6xl font-black mb-4 text-white">Capabilities</h1>
-                <p class="text-gray-500 font-bold uppercase tracking-[0.3em] mb-12">Modular Skillset v1.2</p>
-                <div id="skills-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-            </div>
-        </div>
+        <!-- API / SETTINGS -->
+        <div id="page-api" class="h-full hidden overflow-y-auto p-6 sm:p-16 page-transition custom-scrollbar">
+            <div class="max-w-3xl mx-auto space-y-12">
+                <div class="space-y-2">
+                    <span class="text-xs font-black text-emerald-500 uppercase tracking-[0.5em]">Configuration</span>
+                    <h2 class="text-5xl font-black text-white tracking-tighter uppercase">Neural Matrix Setup</h2>
+                </div>
 
-        <!-- SETTINGS PAGE -->
-        <div id="page-api" class="h-full hidden overflow-y-auto p-8 sm:p-20 page-transition max-w-4xl mx-auto w-full">
-            <h1 class="text-6xl font-black mb-4 text-white">Settings</h1>
-            <p class="text-gray-500 font-bold uppercase tracking-[0.3em] mb-12">Neural Core Configuration</p>
-
-            <div class="space-y-8">
-                <section class="glass rounded-[2.5rem] p-10 space-y-8 shadow-2xl">
-                    <div class="flex items-center gap-4 mb-2">
+                <section class="glass rounded-[2.5rem] p-10 space-y-8">
+                    <div class="flex items-center gap-4 text-white">
                         <div class="p-3 bg-emerald-500/10 rounded-2xl"><i data-lucide="key" class="w-6 h-6 text-emerald-500"></i></div>
-                        <div>
-                            <h3 class="text-xl font-bold">API Key Pool</h3>
-                            <p class="text-xs text-gray-500 font-medium uppercase tracking-widest mt-1">Multi-Key Failover Enabled</p>
+                        <h3 class="text-xl font-bold">API Key Orchestration</h3>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-2">Groq Neural Pool (Comma Separated)</label>
+                            <input id="input-groq" type="password" placeholder="gsk_..." class="w-full glass rounded-2xl px-6 py-4 outline-none focus:border-emerald-500/50 transition-all text-white font-medium">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-2">Hugging Face Bridge Pool</label>
+                            <input id="input-hf" type="password" placeholder="hf_..." class="w-full glass rounded-2xl px-6 py-4 outline-none focus:border-emerald-500/50 transition-all text-white font-medium">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-2">Google Gemini Core Pool</label>
+                            <input id="input-google" type="password" placeholder="AIza..." class="w-full glass rounded-2xl px-6 py-4 outline-none focus:border-emerald-500/50 transition-all text-white font-medium">
                         </div>
                     </div>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2 block px-2">Groq Key Pool</label>
-                            <input type="password" id="input-groq" placeholder="gsk_1, gsk_2..." class="w-full bg-white/5 border border-white/5 rounded-2xl p-5 outline-none focus:border-emerald-500/50 transition-all text-white font-mono text-sm">
-                        </div>
-                        <div>
-                            <label class="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2 block px-2">Hugging Face Key</label>
-                            <input type="password" id="input-hf" placeholder="hf_..." class="w-full bg-white/5 border border-white/5 rounded-2xl p-5 outline-none focus:border-emerald-500/50 transition-all text-white font-mono text-sm">
-                        </div>
-                        <div>
-                            <label class="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2 block px-2">Google Gemini Key</label>
-                            <input type="password" id="input-google" placeholder="AIza..." class="w-full bg-white/5 border border-white/5 rounded-2xl p-5 outline-none focus:border-emerald-500/50 transition-all text-white font-mono text-sm">
-                        </div>
-                    </div>
-                    <button onclick="saveEnv()" id="save-btn" class="w-full emerald-btn text-white font-black py-5 rounded-2xl text-lg shadow-2xl">Sync Neural Core</button>
-                </section>
-                <section class="glass rounded-[2.5rem] p-10 border-red-500/10">
-                    <h3 class="text-xl font-bold text-red-500 mb-6">Danger Zone</h3>
-                    <button onclick="clearAllData()" class="px-8 py-4 bg-red-500/10 text-red-500 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Purge All Memory</button>
+
+                    <button id="save-btn" onclick="saveEnv()" class="w-full emerald-btn text-white font-black py-5 rounded-2xl shadow-2xl text-sm uppercase tracking-widest">Sync Neural Core</button>
+                    <p class="text-[11px] text-gray-600 text-center font-medium">Keys are persisted in your local secure vault (PersistenceManager) and never shared.</p>
                 </section>
             </div>
         </div>
@@ -216,13 +218,17 @@
             <button onclick="showPage('skills')" class="flex flex-col items-center gap-1 transition-all text-gray-500" id="mob-skills"><i data-lucide="zap" class="w-6 h-6"></i><span class="text-[9px] font-black uppercase">Ops</span></button>
             <button onclick="showPage('api')" class="flex flex-col items-center gap-1 transition-all text-gray-500" id="mob-api"><i data-lucide="settings" class="w-6 h-6"></i><span class="text-[9px] font-black uppercase">Admin</span></button>
         </nav>
+
     </main>
 
     <script>
-        lucide.createIcons();
-        const token = window.__HERMES_SESSION_TOKEN__ || '';
         let currentSession = localStorage.getItem('active-session') || 'session-' + Date.now();
-        let currentPage = 'chat', mainTerm;
+        let currentPage = 'chat';
+        let mainTerm = null;
+        const token = new URLSearchParams(window.location.search).get('token') || '';
+
+        lucide.createIcons();
+        localStorage.setItem('active-session', currentSession);
 
         function toggleSidebar(open) {
             const sidebar = document.getElementById('main-sidebar');
@@ -331,6 +337,9 @@
                 if(m) { m.classList.remove('text-emerald-500'); m.classList.add('text-gray-500'); }
             });
             document.getElementById(`page-${id}`).classList.remove('hidden');
+            const inputContainer = document.querySelector(".input-container-mobile");
+            if (id === "chat") { if(inputContainer) inputContainer.classList.remove("hidden"); }
+            else { if(inputContainer) inputContainer.classList.add("hidden"); }
             const an = document.getElementById(`nav-${id}`), am = document.getElementById(`mob-${id}`);
             if(an) an.classList.add('active', 'text-white');
             if(am) { am.classList.add('text-emerald-500'); am.classList.remove('text-gray-500'); }
