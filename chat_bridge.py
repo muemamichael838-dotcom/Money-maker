@@ -61,6 +61,17 @@ async def save_settings(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/skills")
+async def get_skills():
+    return [
+        {"name": "Market Intelligence", "icon": "trending-up", "desc": "Real-time analysis of global financial markets and crypto trends using advanced scraping."},
+        {"name": "Neural Web Scraper", "icon": "globe", "desc": "Deep recursive scraping of any website with JavaScript rendering and AI-driven data extraction."},
+        {"name": "Sports Analytics", "icon": "trophy", "desc": "Live odds retrieval and predictive modeling for major sports leagues (NBA, NFL, Soccer)."},
+        {"name": "Logic Synthesis", "icon": "brain", "desc": "Complex reasoning and problem-solving through multi-step chain-of-thought processing."},
+        {"name": "Autonomous Ops", "icon": "zap", "desc": "Self-correcting task execution and background automation via persistent cron managers."},
+        {"name": "Knowledge Retrieval", "icon": "library", "desc": "Instant access to Wikipedia and academic databases for verified context and facts."}
+    ]
+
 @app.get("/api/sessions")
 async def list_sessions():
     try:
